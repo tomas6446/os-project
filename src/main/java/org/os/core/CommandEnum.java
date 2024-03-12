@@ -1,25 +1,30 @@
 package org.os.core;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor
 public enum CommandEnum {
-    ADD,
-    SUB,
-    MUL,
-    DIV,
-    NEG,
-    AND,
-    OR,
-    NOT,
-    CMP,
-    LD,
-    ST,
-    MOVE,
-    VAL,
-    JM,
-    HALT,
-    CHAR,
-    MEMR,
-    PROR,
-    PRINTC,
+    ADD("ADD", 0x00),
+    SUB("SUB", 0x01),
+    MUL("MUL", 0x02),
+    DIV("DIV", 0x03),
+    NEG("NEG", 0x04),
+    AND("AND", 0x05),
+    OR("OR", 0x06),
+    NOT("NOT", 0x07),
+    CMP("CMP", 0x08),
+    LD("LD", 0x09),
+    ST("ST", 0x0A),
+    MOVE("MOVE", 0x0B),
+    VAL("VAL", 0x0C),
+    JM("JM", 0x0D),
+    HALT("HALT", 0x0E),
+    CHAR("CHAR", 0x0F),
+    MEMR("MEMR", 0x10),
+    PROR("PROR", 0x11),
+    PRINTC("PRINTC", 0x12);
+
+    private final String name;
+    private final int code;
 }

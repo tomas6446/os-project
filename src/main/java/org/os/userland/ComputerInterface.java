@@ -10,7 +10,7 @@ public class ComputerInterface {
     public ComputerInterface() {
         Logger log = Logger.getLogger(ComputerInterface.class.getName());
         try {
-            log.info("=== Computer started ===");
+            System.out.println("=== Computer started ===");
             CommandReader commandReader = new CommandReader();
             List<String> commands = commandReader.readCommand();
             String first = commands.getFirst();
