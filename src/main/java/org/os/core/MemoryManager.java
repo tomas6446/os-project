@@ -47,6 +47,6 @@ public class MemoryManager {
         * from 373-4368 real memory is available
      */
     private int toRealAddress(int address, int ptr) {
-        return ptr * 16 + address;
+        return paginationTable.get(ptr + address / 16, ptr).getUpper() * 16 + address % 16 + 16;
     }
 }
