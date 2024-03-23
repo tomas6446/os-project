@@ -37,7 +37,7 @@ public class RealMachine {
         ModeEnum lastMode = cpu.getModeEnum();
         cpu.setModeEnum(ModeEnum.SUPERVISOR);
 
-        int ptr = 1;
+        int ptr = 0;
         while (memoryManager.read(VM_ADDRESS + ptr, ptr) == 1) {
             ptr++;
         }

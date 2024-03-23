@@ -1,23 +1,20 @@
 package org.os.core;
 
-import java.util.stream.IntStream;
-
 public class PaginationTable {
     private final RealMemory realMemory;
-    private final Word[] table;
+    private final int size;
 
     public PaginationTable(RealMemory realMemory, int size) {
         this.realMemory = realMemory;
-        this.table = new Word[size];
-        IntStream.range(0, size).forEachOrdered(i -> table[i] = new Word());
+        this.size = size;
     }
 
     public Word get(int index, int ptr) {
-        if (table[index].isFree()) {
+        if (realMemory.getMemory()[index].isFree()) {
             allocate(ptr);
-            return table[index];
+            return realMemory.getMemory()[index];
         }
-        return table[index];
+        return realMemory.getMemory()[index];
     }
 
     /*
@@ -27,11 +24,11 @@ public class PaginationTable {
         try {
             int index = realMemory.allocate();
             final int segmentSize = 16;
-            int startIndex = (ptr - 1) * segmentSize;
+            int startIndex = ptr * segmentSize;
             int endIndex = startIndex + segmentSize;
-            for (int i = startIndex; i < endIndex && i < table.length; i++) {
-                if (table[i].isFree()) {
-                    table[i].setUpper(index);
+            for (int i = startIndex; i < endIndex && i < size; i++) {
+                if (realMemory.getMemory()[ptr * 16 + i].isFree()) {
+                    realMemory.getMemory()[ptr * 16 + i].setUpper(index);
                     return;
                 }
             }

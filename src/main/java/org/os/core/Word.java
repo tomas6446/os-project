@@ -54,11 +54,11 @@ public class Word {
 
     @Override
     public String toString() {
-        return String.format("%s %s\n%s %s",
-                String.format("%8s", Integer.toBinaryString(upper[0] & 0xFF)).replace(' ', '0'),
-                String.format("%8s", Integer.toBinaryString(upper[1] & 0xFF)).replace(' ', '0'),
-                String.format("%8s", Integer.toBinaryString(lower[0] & 0xFF)).replace(' ', '0'),
-                String.format("%8s", Integer.toBinaryString(lower[1] & 0xFF)).replace(' ', '0')
+        return String.format("%02X%02X %02X%02X",
+                upper[0] & 0xFF,
+                upper[1] & 0xFF,
+                lower[0] & 0xFF,
+                lower[1] & 0xFF
         );
     }
 }
