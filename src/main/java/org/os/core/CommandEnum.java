@@ -1,4 +1,5 @@
 package org.os.core;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -21,9 +22,9 @@ public enum CommandEnum {
     JM("JM", 0x0D),
     HALT("HALT", 0x0E),
     CHAR("CHAR", 0x0F),
-    MEMR("MEMR", 0x10),
-    PROR("PROR", 0x11),
-    PRINTC("PRINTC", 0x12);
+    PRINTC("PRINTC", 0x12),
+    AR("AR",  80_000_000),
+    BR("BR", 80_000_001);
 
     private final String name;
     private final int code;
