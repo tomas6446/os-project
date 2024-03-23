@@ -1,16 +1,16 @@
 package org.os.core;
 
-import static org.os.core.RealMachine.REAL_MEMORY_WORD_SIZE;
+import static org.os.core.RealMachine.REAL_MEMORY_SIZE;
 
 public class MemoryManager {
     private final Cpu cpu;
     private final Memory memory;
+    private final PaginationTable paginationTable;
 
-    public MemoryManager(Cpu cpu, Memory memory) {
+    public MemoryManager(Cpu cpu, Memory memory, PaginationTable paginationTable) {
         this.cpu = cpu;
         this.memory = memory;
-
-
+        this.paginationTable = paginationTable;
     }
 
     private int getAddress(int address, int ptr) throws RuntimeException {
@@ -19,7 +19,7 @@ public class MemoryManager {
                 return address;
             case USER:
                 int realAddress = toRealAddress(address, ptr);
-                if (realAddress > REAL_MEMORY_WORD_SIZE) {
+                if (realAddress > REAL_MEMORY_SIZE) {
                     throw new RuntimeException("Out of memory");
                 }
                 return realAddress;
@@ -37,8 +37,15 @@ public class MemoryManager {
     public void write(int address, int value, int ptr) {
         int realAddress = getAddress(address, ptr);
         memory.write(realAddress, value);
+        memory.show();
     }
 
+    /*
+        * Convert the virtual address to the real address
+        * first 256 is reserved for pagination table
+        * next 16 : 257-273 is reserved for VM
+        * from 373-4368 real memory is available
+     */
     private int toRealAddress(int address, int ptr) {
         return ptr * 16 + address;
     }
