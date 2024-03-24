@@ -1,8 +1,11 @@
 package org.os.core;
 
 
+import lombok.Getter;
+
 import static org.os.userland.ComputerInterface.REAL_MEMORY_SIZE;
 
+@Getter
 public class MemoryManager {
     private final Cpu cpu;
     private final Memory memory;

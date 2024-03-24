@@ -3,6 +3,8 @@ package org.os.core;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
+
 @Getter
 @AllArgsConstructor
 public enum CodeEnum {
@@ -33,8 +35,15 @@ public enum CodeEnum {
     FLAG("FLAG", 0x80000008L),
     EXE("EXE", 0x80000009L),
     PI("PI", 0x80000010L),
-    MODE("MODE", 0x80000011L);
+    MODE("MODE", 0x80000011L),
+    TI("TI", 0x80000012L),
+    IC("IC", 0x80000013L),
+    DEL("DEL", 0x80000014L);
 
     private final String name;
     private final long code;
+
+    public static CodeEnum byCode(long code) {
+        return Arrays.stream(values()).filter(value -> value.getCode() == code).findFirst().orElse(null);
+    }
 }

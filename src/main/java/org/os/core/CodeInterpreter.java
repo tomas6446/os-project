@@ -1,7 +1,5 @@
 package org.os.core;
 
-import org.os.vm.VirtualMachine;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -9,7 +7,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class CodeInterpreter {
-    public void load(MemoryManager memoryManager, File file, VirtualMachine virtualMachine) {
+    public void load(MemoryManager memoryManager, File file, Cpu cpu) {
         try {
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 
@@ -24,13 +22,13 @@ public class CodeInterpreter {
                         long regValue1 = CodeEnum.valueOf(moveArgs.get(0)).getCode();
                         long regValue2 = CodeEnum.valueOf(moveArgs.get(1)).getCode();
 
-                        memoryManager.write(virtualMachine.getPtr() + counter, command.getCode(), virtualMachine.getPtr());
-                        memoryManager.write(virtualMachine.getPtr() + counter + 1, regValue1, virtualMachine.getPtr());
-                        memoryManager.write(virtualMachine.getPtr() + counter + 2, regValue2, virtualMachine.getPtr());
+                        memoryManager.write(cpu.getPtr() + counter, command.getCode(), cpu.getPtr());
+                        memoryManager.write(cpu.getPtr() + counter + 1, regValue1, cpu.getPtr());
+                        memoryManager.write(cpu.getPtr() + counter + 2, regValue2, cpu.getPtr());
                         counter += 3;
                         continue;
                     }
-                    memoryManager.write(virtualMachine.getPtr() + counter, command.getCode(), virtualMachine.getPtr());
+                    memoryManager.write(cpu.getPtr() + counter, command.getCode(), cpu.getPtr());
                     counter++;
                 }
             }

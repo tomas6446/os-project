@@ -25,6 +25,16 @@ public class RealMemory implements Memory {
         memory[address].fromInt(value);
     }
 
+    @Override
+    public void writeLower(int address, int value) {
+        memory[address].setLower(value);
+    }
+
+    @Override
+    public long readLower(int address) {
+        return memory[address].getLower();
+    }
+
     /*
      * This method is used to allocate a block of memory of size 16 if available
      */
@@ -45,5 +55,12 @@ public class RealMemory implements Memory {
             }
         }
         throw new Exception("No free block of size " + blockSize + " is available.");
+    }
+
+    public void free(int index) {
+        int address = (index - 1) * 16;
+        for (int j = 0; j < 16; j++) {
+            memory[address + j] = new Word();
+        }
     }
 }

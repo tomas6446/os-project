@@ -35,10 +35,10 @@ public class ComputerInterface {
                 String first = commands.getFirst();
                 boolean status = switch (first) {
                     case "load" -> realMachine.load(commands.get(1));
-                    case "unload" -> realMachine.unload(Integer.parseInt(commands.get(1)));
+                    case "clear" -> realMachine.clear(Integer.parseInt(commands.get(1)));
                     case "run" -> realMachine.run(Integer.parseInt(commands.get(1)));
                     case "memory" -> showMemoryTable(commandReader, realMachine);
-                    case "clear" -> clearConsole();
+                    case "cls" -> clearConsole();
                     default -> throw new IllegalStateException("Unexpected value: " + first);
                 };
 

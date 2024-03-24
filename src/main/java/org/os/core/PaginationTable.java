@@ -40,4 +40,16 @@ public class PaginationTable {
             throw new RuntimeException("Allocation failed: " + e.getMessage(), e);
         }
     }
+
+    /*
+     * Frees the 16 words of memory in pagination table and the real memory
+     */
+    public void free(int ptr) {
+        realMemory.free(realMemory.getMemory()[ptr].getUpper() + 16 * 16);
+        for(int i = 0; i < 16; i++) {
+            int index = realMemory.getMemory()[ptr + i].getUpper();
+            realMemory.free(index);
+            realMemory.free(ptr + i);
+        }
+    }
 }
