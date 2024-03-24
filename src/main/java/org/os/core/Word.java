@@ -15,16 +15,17 @@ public class Word {
         lower = new byte[SIZE / 2];
     }
 
-    public int toInt() {
-        return (lower[0] & 0xFF) << 24 | (lower[1] & 0xFF) << 16 | (upper[0] & 0xFF) << 8 | (upper[1] & 0xFF);
+    public long toInt() {
+        return ((long) (upper[0] & 0xFF) << 24) | ((upper[1] & 0xFF) << 16) | ((lower[0] & 0xFF) << 8) | (lower[1] & 0xFF);
     }
 
-    public void fromInt(int value) {
+    public void fromInt(long value) {
         lower[0] = (byte) (value >> 24);
         lower[1] = (byte) (value >> 16);
         upper[0] = (byte) (value >> 8);
         upper[1] = (byte) value;
     }
+
 
     public Word getWord() {
         return this;

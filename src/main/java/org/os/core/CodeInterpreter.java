@@ -8,30 +8,30 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
-public class Loader {
+public class CodeInterpreter {
     public void load(MemoryManager memoryManager, File file, VirtualMachine virtualMachine) {
         try {
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 
                 String line;
-                int address = 0;
+                int counter = 0;
                 while ((line = reader.readLine()) != null) {
                     List<String> args = List.of(line.split(" "));
-                    CommandEnum command = CommandEnum.valueOf(args.getFirst());
+                    CodeEnum command = CodeEnum.valueOf(args.getFirst());
 
-                    if (command == CommandEnum.MOVE) {
+                    if (command == CodeEnum.MOVE) {
                         List<String> moveArgs = List.of(args.get(1).split(","));
-                        int regValue1 = Integer.parseInt(moveArgs.get(0));
-                        int regValue2 = Integer.parseInt(moveArgs.get(1));
+                        long regValue1 = CodeEnum.valueOf(moveArgs.get(0)).getCode();
+                        long regValue2 = CodeEnum.valueOf(moveArgs.get(1)).getCode();
 
-                        memoryManager.write(virtualMachine.getPtr() + address, command.getCode(), virtualMachine.getPtr());
-                        memoryManager.write(virtualMachine.getPtr() + address + 1, regValue1, virtualMachine.getPtr());
-                        memoryManager.write(virtualMachine.getPtr() + address + 2, regValue2, virtualMachine.getPtr());
-                        address += 3;
+                        memoryManager.write(virtualMachine.getPtr() + counter, command.getCode(), virtualMachine.getPtr());
+                        memoryManager.write(virtualMachine.getPtr() + counter + 1, regValue1, virtualMachine.getPtr());
+                        memoryManager.write(virtualMachine.getPtr() + counter + 2, regValue2, virtualMachine.getPtr());
+                        counter += 3;
                         continue;
                     }
-                    memoryManager.write(virtualMachine.getPtr() + address, command.getCode(), virtualMachine.getPtr());
-                    address++;
+                    memoryManager.write(virtualMachine.getPtr() + counter, command.getCode(), virtualMachine.getPtr());
+                    counter++;
                 }
             }
 

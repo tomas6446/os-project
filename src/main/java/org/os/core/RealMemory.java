@@ -1,8 +1,7 @@
 package org.os.core;
-import com.jakewharton.fliptables.FlipTable;
+
 import lombok.Getter;
 
-import java.util.Arrays;
 import java.util.stream.IntStream;
 
 @Getter
@@ -22,7 +21,7 @@ public class RealMemory implements Memory {
     }
 
     @Override
-    public void write(int address, int value) {
+    public void write(int address, long value) {
         memory[address].fromInt(value);
     }
 
@@ -46,28 +45,5 @@ public class RealMemory implements Memory {
             }
         }
         throw new Exception("No free block of size " + blockSize + " is available.");
-    }
-
-    @Override
-    public void show() {
-        String[] headers = new String[]{"Address", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16"};
-        String[][] data = new String[273][17];
-
-        for (int i = 0; i < 273; i++) {
-            data[i][0] = String.format("%03d", i+1);
-            for (int j = 0; j < 16; j++) {
-                int address = i * 16 + j;
-                data[i][j+1] = memory[address].getWord().toString();
-            }
-        }
-
-        System.out.println("Pagination Table:");
-        System.out.println(FlipTable.of(headers, Arrays.copyOfRange(data, 0, 16)));
-
-        System.out.println("Virtual Machines:");
-        System.out.println(FlipTable.of(headers, Arrays.copyOfRange(data, 16, 17)));
-
-        System.out.println("Virtual Memory:");
-        System.out.println(FlipTable.of(headers, Arrays.copyOfRange(data, 17, 273)));
     }
 }

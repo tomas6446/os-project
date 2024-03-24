@@ -17,6 +17,6 @@ public class Cpu {
     private int pi;
     private int mode;
 
-    private CommandEnum commandEnum;
+    private CodeEnum codeEnum;
     private ModeEnum modeEnum;
 }

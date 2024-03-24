@@ -9,6 +9,9 @@ public class PaginationTable {
         this.size = size;
     }
 
+    /*
+     * Get a page from the real memory
+     */
     public Word get(int index, int ptr) {
         if (realMemory.getMemory()[index].isFree()) {
             allocate(ptr);

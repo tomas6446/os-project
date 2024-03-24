@@ -1,34 +1,36 @@
 package org.os.core;
 
+import lombok.Getter;
 import org.os.vm.VirtualMachine;
 
 import java.io.File;
 
+import static java.lang.System.out;
+import static org.os.userland.ComputerInterface.VM_ADDRESS;
+
+@Getter
 public class RealMachine {
-    private static final int VM_ADDRESS = 256; // PROC 16 pages, 16 words per page
-    public static int REAL_MEMORY_SIZE = 4624;
-    public static int PAGINATION_TABLE_SIZE = 256; // 16 pages, 16 words per page (4 bytes per word)
     private final MemoryManager memoryManager;
     private final Cpu cpu;
     private final RealMemory realMemory;
     private final PaginationTable paginationTable;
 
-    public RealMachine() {
-        cpu = new Cpu();
-        realMemory = new RealMemory(REAL_MEMORY_SIZE);
-        paginationTable = new PaginationTable(realMemory, PAGINATION_TABLE_SIZE);
-        memoryManager = new MemoryManager(cpu, realMemory, paginationTable);
+    public RealMachine(RealMemory realMemory, Cpu cpu, MemoryManager memoryManager, PaginationTable paginationTable) {
+        this.realMemory = realMemory;
+        this.cpu = cpu;
+        this.memoryManager = memoryManager;
+        this.paginationTable = paginationTable;
     }
 
     public boolean load(String programName) {
-        System.out.println("Loading the program " + programName);
+        out.println("Loading the program " + programName);
 
-        Loader loader = new Loader();
+        CodeInterpreter codeInterpreter = new CodeInterpreter();
         VirtualMachine virtualMachine = createVM();
         cpu.setModeEnum(ModeEnum.USER);
 
         File file = new File(programName);
-        loader.load(memoryManager, file, virtualMachine);
+        codeInterpreter.load(memoryManager, file, virtualMachine);
 
         return true;
     }
@@ -51,22 +53,22 @@ public class RealMachine {
     }
 
     public boolean unload(int index) {
-        System.out.println("Stopping the program at index " + index);
+        out.println("Stopping the program at index " + index);
         return true;
     }
 
     public boolean run(int index) {
-        System.out.println("Running the program at index " + index);
+        out.println("Running the program at index " + index);
         return true;
     }
 
     public boolean next() {
-        System.out.println("Running the next program");
+        out.println("Running the next program");
         return true;
     }
 
     public boolean interrupt() {
-        System.out.println("Interrupting the current program");
+        out.println("Interrupting the current program");
         return true;
     }
 }
