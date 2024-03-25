@@ -33,6 +33,7 @@ public class RealMachine {
 
         out.println("Run the program with the command run " + cpu.getPtr());
         cpu.setAtm(0);
+        cpu.setModeEnum(ModeEnum.SUPERVISOR);
 
         return true;
     }
@@ -44,6 +45,8 @@ public class RealMachine {
     }
 
     public boolean run(int ptr) {
+        cpu.setModeEnum(ModeEnum.USER);
+
         out.println("Running the program at index " + ptr);
         int cycleTimes = 4;
 
@@ -56,15 +59,12 @@ public class RealMachine {
 
         while (cycleTimes > 0) {
             cycleTimes--;
-            out.println("Running the program at index " + ptr);
-            long address = memoryManager.read(cpu.getAtm(), ptr);
-            long command = memoryManager.read((int) address, ptr);
-
+            long command = memoryManager.read(cpu.getAtm(), ptr);
             int atm = handleCommand(command);
-            cpu.setAtm(atm);
-
+            cpu.setAtm(cpu.getAtm() + atm);
         }
         virtualMachineInterrupt();
+
         return true;
     }
 
@@ -110,7 +110,7 @@ public class RealMachine {
                 return 2;
             case JM:
                 return handleJmpCommand();
-            case MOVE, VAL:
+            case MOVE:
                 return handleMoveCommand();
             case HALT:
                 cpu.setExc(0);
@@ -129,51 +129,77 @@ public class RealMachine {
     private int handleJmpCommand() {
         long val = memoryManager.read(cpu.getAtm() + 1, cpu.getPtr());
         return switch (cpu.getMode()) {
-            case 0, 1 -> cpu.getAtm() - (int) val;
+            case 0, 1 -> (int) val - cpu.getAtm();
             default -> 0;
         };
     }
 
     private int handleMoveCommand() {
-        long f = memoryManager.read(cpu.getAtm() + 1, cpu.getPtr());
-        CodeEnum reg1 = CodeEnum.byCode(f);
-        // If reg1 is null, it's a direct memory operation.
-        if (reg1 == null) {
-            performDirectMemoryOperation(f);
-            return 3;
+        long arg1 = memoryManager.read(cpu.getAtm() + 1, cpu.getPtr());
+        long arg2 = memoryManager.read(cpu.getAtm() + 2, cpu.getPtr());
+
+        CodeEnum reg1 = CodeEnum.byCode(arg1);
+        CodeEnum reg2 = CodeEnum.byCode(arg2);
+
+        boolean isReg1 = arg1 > 0x80000000L;
+        boolean isReg2 = arg2 > 0x80000000L;
+
+        if (!isReg1 && isReg2) {
+            return handleRegisterToValueMove(arg1, reg2);
+        } else if (isReg1 && !isReg2) {
+            return handleValueToRegisterMove(reg1, arg2);
         } else {
-            // Handle register-to-register moves.
-            return handleRegisterToRegisterMove(f, reg1);
+            return handleRegisterToRegisterMove(reg1, reg2);
         }
     }
 
-    private void performDirectMemoryOperation(long f) {
+    private int handleRegisterToValueMove(long arg1, CodeEnum reg2) {
+        long address = memoryManager.read((int) arg1, cpu.getPtr());
+        long registerValue = switch (reg2) {
+            case AR -> cpu.getAr();
+            case BR -> cpu.getBr();
+            case ATM -> cpu.getAtm();
+            case IC -> cpu.getIc();
+            case PTR -> cpu.getPtr();
+            case TF -> cpu.getTf();
+            default -> throw new IllegalStateException("Unexpected value: " + reg2);
+        };
         if (cpu.getMode() == 1) {
-            memoryManager.write((int) f, cpu.getBr(), cpu.getPtr());
-        } else if (cpu.getMode() == 0) {
-            memoryManager.getMemory().write((int) f, cpu.getBr());
-        }
-    }
-
-    private int handleRegisterToRegisterMove(long f, CodeEnum reg1) {
-        long s = memoryManager.read(cpu.getAtm() + 2, cpu.getPtr());
-        CodeEnum reg2 = CodeEnum.byCode(s);
-        // Simplified logic to set values based on reg1 and reg2 codes.
-        if (reg2 != null) {
-            switch (reg1) {
-                case AR -> setRegisterValue(reg2, cpu.getAr());
-                case BR -> setRegisterValue(reg2, cpu.getBr());
-                case ATM -> setRegisterValue(reg2, cpu.getAtm());
-                case IC -> setRegisterValue(reg2, cpu.getIc());
-                case PTR -> setRegisterValue(reg2, cpu.getPtr());
-                default -> throw new IllegalStateException("Unexpected value: " + reg1);
-            }
+            memoryManager.write((int) address, (int) registerValue, cpu.getPtr());
+        } else {
+            memoryManager.getMemory().write((int) address, (int) registerValue);
         }
         return 3;
     }
 
-    private void setRegisterValue(CodeEnum reg, int value) {
-        switch (reg) {
+    private int handleValueToRegisterMove(CodeEnum reg2, long arg1) {
+        long value = memoryManager.read((int) arg1, cpu.getPtr());
+        switch (reg2) {
+            case AR -> cpu.setAr((int) value);
+            case BR -> cpu.setBr((int) value);
+            case ATM -> cpu.setAtm((int) value);
+            case IC -> cpu.setIc((int) value);
+            case PTR -> cpu.setPtr((int) value);
+            case TF -> cpu.setTf((int) value);
+            default -> throw new IllegalStateException("Unexpected value: " + reg2);
+        }
+        return 3;
+    }
+
+    private int handleRegisterToRegisterMove(CodeEnum reg1, CodeEnum reg2) {
+        switch (reg1) {
+            case AR -> setRegisterValue(reg2, cpu.getAr());
+            case BR -> setRegisterValue(reg2, cpu.getBr());
+            case ATM -> setRegisterValue(reg2, cpu.getAtm());
+            case IC -> setRegisterValue(reg2, cpu.getIc());
+            case PTR -> setRegisterValue(reg2, cpu.getPtr());
+            default -> throw new IllegalStateException("Unexpected value: " + reg2);
+        }
+        return 3;
+    }
+
+    private void setRegisterValue(CodeEnum reg2, int value) {
+        switch (reg2) {
             case AR -> cpu.setAr(value);
             case BR -> cpu.setBr(value);
             case ATM -> cpu.setAtm(value);
@@ -194,6 +220,7 @@ public class RealMachine {
         memoryManager.getMemory().writeLower(address + 5, cpu.getPtr());
 
         handleException();
+        cpu.setModeEnum(ModeEnum.SUPERVISOR);
     }
 
     private void handleException() {

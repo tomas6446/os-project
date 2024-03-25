@@ -25,6 +25,8 @@ public enum CodeEnum {
     HALT("HALT", 0x0E),
     CHAR("CHAR", 0x0F),
     PRINT("PRINT", 0x12),
+    DATA_SEGMENT("DATA_SEGMENT", 0x13),
+    CODE_SEGMENT("CODE_SEGMENT", 0x14),
     AR("AR", 0x80000001L),
     BR("BR", 0x80000002L),
     CR("CR", 0x80000003L),

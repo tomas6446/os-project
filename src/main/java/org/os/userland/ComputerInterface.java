@@ -2,6 +2,7 @@ package org.os.userland;
 
 import org.os.core.*;
 import org.os.util.CommandReader;
+import org.os.util.CpuVisualiser;
 import org.os.util.MemoryVisualiser;
 
 import java.io.IOException;
@@ -57,17 +58,19 @@ public class ComputerInterface {
         String input;
         do {
             clearConsole();
-            out.printf("Choose an option:%n1. Pagination Table%n2. Virtual Machines%n3. Virtual Memory%n4. Exit%n");
+            out.printf("Choose an option:%n1. Pagination Table%n2. Virtual Machines%n3. Virtual Memory%n4. Registers%n5. Exit%n");
             input = commandReader.readCommand().getFirst();
             MemoryVisualiser memoryVisualiser = new MemoryVisualiser(realMachine.getRealMemory().getMemory());
+            CpuVisualiser cpuVisualiser = new CpuVisualiser(realMachine.getCpu());
             switch (input) {
                 case "1" -> memoryVisualiser.showPagination();
                 case "2" -> memoryVisualiser.showVirtualMachines();
                 case "3" -> memoryVisualiser.showVirtualMemory();
-                case "4" -> prompt(commandReader, realMachine);
+                case "4" -> cpuVisualiser.showRegisters();
+                case "5" -> prompt(commandReader, realMachine);
                 default -> out.println("Invalid input");
             }
-        } while (!"4".equals(input));
+        } while (!"5".equals(input));
 
         return true;
     }

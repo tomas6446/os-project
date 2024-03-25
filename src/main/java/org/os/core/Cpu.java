@@ -17,6 +17,5 @@ public class Cpu {
     private int pi;
     private int mode;
 
-    private CodeEnum codeEnum;
     private ModeEnum modeEnum;
 }

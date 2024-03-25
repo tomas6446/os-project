@@ -7,16 +7,16 @@ import lombok.Data;
 @AllArgsConstructor
 public class Word {
     public static final int SIZE = 4;
-    private byte[] upper; // 2 bytes, always stores data
     private byte[] lower; // 2 bytes, always stores registers
+    private byte[] upper; // 2 bytes, always stores data
 
     public Word() {
-        upper = new byte[SIZE / 2];
         lower = new byte[SIZE / 2];
+        upper = new byte[SIZE / 2];
     }
 
     public long toInt() {
-        return ((long) (upper[0] & 0xFF) << 24) | ((upper[1] & 0xFF) << 16) | ((lower[0] & 0xFF) << 8) | (lower[1] & 0xFF);
+        return ((long) (lower[0] & 0xFF) << 24) | ((lower[1] & 0xFF) << 16) | ((upper[0] & 0xFF) << 8) | (upper[1] & 0xFF);
     }
 
     public void fromInt(long value) {
@@ -56,10 +56,10 @@ public class Word {
     @Override
     public String toString() {
         return String.format("%02X%02X %02X%02X",
-                upper[0] & 0xFF,
-                upper[1] & 0xFF,
                 lower[0] & 0xFF,
-                lower[1] & 0xFF
+                lower[1] & 0xFF,
+                upper[0] & 0xFF,
+                upper[1] & 0xFF
         );
     }
 }
