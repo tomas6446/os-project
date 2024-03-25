@@ -49,7 +49,11 @@ public class MemoryManager {
      * next 16 : 257-273 is reserved for VM
      * from 373-4368 real memory is available
      */
-    private int toRealAddress(int address, int ptr) {
+    public int toRealAddress(int address, int ptr) {
         return paginationTable.get(ptr + address / 16, ptr).getUpper() * 16 + address % 16 - 16;
+    }
+
+    public void free(int ptr) {
+        paginationTable.free(ptr);
     }
 }

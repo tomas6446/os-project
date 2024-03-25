@@ -58,7 +58,7 @@ public class RealMemory implements Memory {
     }
 
     public void free(int index) {
-        int address = (index - 1) * 16;
+        int address = index * 16;
         for (int j = 0; j < 16; j++) {
             memory[address + j] = new Word();
         }

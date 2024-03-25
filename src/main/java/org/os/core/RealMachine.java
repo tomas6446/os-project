@@ -21,7 +21,7 @@ public class RealMachine {
         this.paginationTable = paginationTable;
     }
 
-    public boolean load(String programName) {
+    public void load(String programName) {
         out.println("Loading the program " + programName);
 
         CodeInterpreter codeInterpreter = new CodeInterpreter();
@@ -31,41 +31,41 @@ public class RealMachine {
         File file = new File(programName);
         codeInterpreter.load(memoryManager, file, cpu);
 
-        out.println("Run the program with the command run " + cpu.getPtr());
+        out.println("Program loaded. Use 'run' command to start the program");
         cpu.setAtm(0);
         cpu.setModeEnum(ModeEnum.SUPERVISOR);
-
-        return true;
     }
 
 
-    public boolean clear(int ptr) {
-        paginationTable.free(ptr);
-        return true;
+    public void clear(int ptr) {
+        memoryManager.free(ptr);
+        out.println("Program at index " + ptr + " cleared");
     }
 
-    public boolean run(int ptr) {
+    public void preRun(int ptr) {
         cpu.setModeEnum(ModeEnum.USER);
-
-        out.println("Running the program at index " + ptr);
-        int cycleTimes = 6;
-
+        out.println("Prerunning the program at index " + ptr);
         cpu.setAr((int) memoryManager.getMemory().readLower(ptr));
         cpu.setBr((int) memoryManager.getMemory().readLower(ptr + 1));
         cpu.setAtm((int) memoryManager.getMemory().readLower(ptr + 2));
         cpu.setIc((int) memoryManager.getMemory().readLower(ptr + 3));
         cpu.setTf((int) memoryManager.getMemory().readLower(ptr + 4));
         cpu.setPtr((int) memoryManager.getMemory().readLower(ptr + 5));
+    }
 
+    public void continueRun(int ptr) {
+        long command = memoryManager.read(cpu.getAtm(), ptr);
+        int atm = handleCommand(command);
+        cpu.setAtm(cpu.getAtm() + atm);
+    }
+
+    public void run(int ptr, int cycleTimes) {
+        preRun(ptr);
         while (cycleTimes > 0) {
             cycleTimes--;
-            long command = memoryManager.read(cpu.getAtm(), ptr);
-            int atm = handleCommand(command);
-            cpu.setAtm(cpu.getAtm() + atm);
+            continueRun(ptr);
         }
         virtualMachineInterrupt();
-
-        return true;
     }
 
     private int handleCommand(long val) {
@@ -111,7 +111,6 @@ public class RealMachine {
                 return cpu.getAr() > cpu.getBr() ? handleJmpCommand(1) : 2;
             case JGR:
                 return cpu.getAr() < cpu.getBr() ? handleJmpCommand(1) : 2;
-
             case LD:
                 cpu.setAr((int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr()));
                 return 2;
@@ -138,8 +137,7 @@ public class RealMachine {
     }
 
     private int handleJmpCommand(int flag) {
-        return flag == 1 ? cpu.getAtm() + (int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr()) :
-                (int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr());
+        return flag == 1 ? cpu.getAtm() + (int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr()) : (int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr());
     }
 
     private int handleMoveCommand() {
@@ -201,6 +199,7 @@ public class RealMachine {
             case ATM -> setRegisterValue(reg2, cpu.getAtm());
             case IC -> setRegisterValue(reg2, cpu.getIc());
             case PTR -> setRegisterValue(reg2, cpu.getPtr());
+            case TF -> setRegisterValue(reg2, cpu.getTf());
             default -> throw new IllegalStateException("Unexpected value: " + reg2);
         }
         return 3;
@@ -213,6 +212,8 @@ public class RealMachine {
             case ATM -> cpu.setAtm(value);
             case IC -> cpu.setIc(value);
             case PTR -> cpu.setPtr(value);
+            case TF -> cpu.setTf(value);
+            default -> throw new IllegalStateException("Unexpected value: " + reg2);
         }
     }
 
@@ -229,12 +230,11 @@ public class RealMachine {
 
         handleException();
         cpu.setModeEnum(ModeEnum.SUPERVISOR);
+        out.println("Program interrupted");
     }
 
     private void handleException() {
-        if (cpu.getExc() == 0) {
-            out.println("Stopping the program");
-        } else if (cpu.getExc() == 1) {
+        if (cpu.getExc() == 1) {
             out.println("Deleting the program");
             clear(cpu.getPtr());
         }
