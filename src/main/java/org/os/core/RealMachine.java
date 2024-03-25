@@ -48,7 +48,7 @@ public class RealMachine {
         cpu.setModeEnum(ModeEnum.USER);
 
         out.println("Running the program at index " + ptr);
-        int cycleTimes = 4;
+        int cycleTimes = 6;
 
         cpu.setAr((int) memoryManager.getMemory().readLower(ptr));
         cpu.setBr((int) memoryManager.getMemory().readLower(ptr + 1));
@@ -99,6 +99,19 @@ public class RealMachine {
             case CMP:
                 cpu.setTf(cpu.getAr() == cpu.getBr() ? 1 : 0);
                 return 1;
+            case JL:
+                return cpu.getAr() > cpu.getBr() ? handleJmpCommand(0) : 2;
+            case JG:
+                return cpu.getAr() < cpu.getBr() ? handleJmpCommand(0) : 2;
+            case JM:
+                return handleJmpCommand(0);
+            case JMR:
+                return handleJmpCommand(1);
+            case JLR:
+                return cpu.getAr() > cpu.getBr() ? handleJmpCommand(1) : 2;
+            case JGR:
+                return cpu.getAr() < cpu.getBr() ? handleJmpCommand(1) : 2;
+
             case LD:
                 cpu.setAr((int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr()));
                 return 2;
@@ -108,8 +121,6 @@ public class RealMachine {
                     case 0 -> memoryManager.getMemory().write(cpu.getAtm() + 1, cpu.getAr());
                 }
                 return 2;
-            case JM:
-                return handleJmpCommand();
             case MOVE:
                 return handleMoveCommand();
             case HALT:
@@ -126,12 +137,9 @@ public class RealMachine {
         }
     }
 
-    private int handleJmpCommand() {
-        long val = memoryManager.read(cpu.getAtm() + 1, cpu.getPtr());
-        return switch (cpu.getMode()) {
-            case 0, 1 -> (int) val - cpu.getAtm();
-            default -> 0;
-        };
+    private int handleJmpCommand(int flag) {
+        return flag == 1 ? cpu.getAtm() + (int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr()) :
+                (int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr());
     }
 
     private int handleMoveCommand() {

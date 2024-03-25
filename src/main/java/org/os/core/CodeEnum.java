@@ -40,7 +40,12 @@ public enum CodeEnum {
     MODE("MODE", 0x80000011L),
     TI("TI", 0x80000012L),
     IC("IC", 0x80000013L),
-    DEL("DEL", 0x80000014L);
+    DEL("DEL", 0x80000014L),
+    JL("JL", 0x80000015L),
+    JG("JG", 0x80000016L),
+    JMR("JMR", 0x80000017L),
+    JLR("JLR", 0x80000018L),
+    JGR("JGR", 0x80000019L);
 
     private final String name;
     private final long code;
