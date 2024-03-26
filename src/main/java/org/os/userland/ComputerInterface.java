@@ -205,7 +205,7 @@ public class ComputerInterface {
                 case "5" -> cpuVisualiser.showRegisters();
                 case "0" -> {
                 }
-                default -> out.println("Invalid input. Please enter a number between 1 and 5.");
+                default -> out.println("Invalid input. Please enter a number between 0 and 5.");
             }
         } while (!"0".equals(input));
     }
