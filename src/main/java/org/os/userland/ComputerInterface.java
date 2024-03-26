@@ -80,10 +80,6 @@ public class ComputerInterface {
     }
 
     private void handleClear(RealMachine realMachine, int vmNumber) {
-        if (!realMachine.vmExists(vmNumber)) {
-            System.out.println("Program at index " + vmNumber + " does not exist");
-            return;
-        }
         realMachine.clear(vmNumber);
     }
 
