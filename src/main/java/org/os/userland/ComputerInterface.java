@@ -28,6 +28,7 @@ public class ComputerInterface {
     }
 
     private void initializeComponents() {
+        clearConsole();
         Cpu cpu = new Cpu();
         RealMemory realMemory = new RealMemory(REAL_MEMORY_SIZE);
         PaginationTable paginationTable = new PaginationTable(realMemory);
