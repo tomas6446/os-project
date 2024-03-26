@@ -185,7 +185,6 @@ public class ComputerInterface {
     private void showMemoryTable(RealMachine realMachine) {
         String input;
         do {
-            clearConsole();
             out.printf("%nChoose an option:%n" +
                     "1. Pagination Table%n" +
                     "2. Virtual Machines%n" +
