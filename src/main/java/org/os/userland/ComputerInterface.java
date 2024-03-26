@@ -135,36 +135,35 @@ public class ComputerInterface {
 
         while (!"exit".equalsIgnoreCase(input)) {
             long command = realMachine.continueRun(vmNumber);
-            Cpu cpu = realMachine.getCpu();
 
             out.println("Command: " + CodeEnum.byCode(command) +
-                    " AR: " + cpu.getAr() +
-                    " BR: " + cpu.getBr() +
-                    " ATM: " + cpu.getAtm() +
-                    " IC: " + cpu.getIc() +
-                    " PTR: " + cpu.getPtr() +
-                    " TF: " + cpu.getTf() +
-                    " Mode: " + cpu.getModeEnum() +
-                    " Exc: " + cpu.getExc() + "\n");
+                    " AR: " + realMachine.getCpu().getAr() +
+                    " BR: " + realMachine.getCpu().getBr() +
+                    " ATM: " + realMachine.getCpu().getAtm() +
+                    " IC: " + realMachine.getCpu().getIc() +
+                    " PTR: " + realMachine.getCpu().getPtr() +
+                    " TF: " + realMachine.getCpu().getTf() +
+                    " Mode: " + realMachine.getCpu().getModeEnum() +
+                    " Exc: " + realMachine.getCpu().getExc() + "\n");
 
             input = scanner.nextLine();
 
             if (input.contains("AR=")) {
-                cpu.setPtr(getRegisterInput(input));
+                realMachine.getCpu().setPtr(getRegisterInput(input));
             } else if (input.contains("BR=")) {
-                cpu.setBr(getRegisterInput(input));
+                realMachine.getCpu().setBr(getRegisterInput(input));
             } else if (input.contains("ATM=")) {
-                cpu.setAtm(getRegisterInput(input));
+                realMachine.getCpu().setAtm(getRegisterInput(input));
             } else if (input.contains("IC=")) {
-                cpu.setIc(getRegisterInput(input));
+                realMachine.getCpu().setIc(getRegisterInput(input));
             } else if (input.contains("PTR=")) {
-                cpu.setPtr(getRegisterInput(input));
+                realMachine.getCpu().setPtr(getRegisterInput(input));
             } else if (input.contains("TF=")) {
-                cpu.setTf(getRegisterInput(input));
+                realMachine.getCpu().setTf(getRegisterInput(input));
             } else if (input.contains("Mode=")) {
-                cpu.setMode(getRegisterInput(input));
+                realMachine.getCpu().setMode(getRegisterInput(input));
             } else if (input.contains("Exc=")) {
-                cpu.setExc(getRegisterInput(input));
+                realMachine.getCpu().setExc(getRegisterInput(input));
             }
         }
     }

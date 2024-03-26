@@ -71,8 +71,7 @@ public class RealMachine {
 
     public long continueRun(int ptr) {
         long command = memoryManager.read(cpu.getAtm(), ptr);
-        int atm = handleCommand(command);
-        cpu.setAtm(cpu.getAtm() + atm);
+        handleCommand(command);
         return command;
     }
 
@@ -85,76 +84,81 @@ public class RealMachine {
         virtualMachineInterrupt();
     }
 
-    private int handleCommand(long val) {
+    private void handleCommand(long val) {
         CodeEnum command = CodeEnum.byCode(val);
-        switch (command) {
+        int atm = switch (command) {
             case ADD:
                 cpu.setAr(cpu.getAr() + cpu.getBr());
-                return 1;
+                yield 1;
             case SUB:
                 cpu.setAr(cpu.getAr() - cpu.getBr());
-                return 1;
+                yield 1;
             case DIV:
                 cpu.setAr(cpu.getAr() / cpu.getBr());
                 cpu.setBr(cpu.getAr() % cpu.getBr());
-                return 1;
+                yield 1;
             case MUL:
                 cpu.setAr(cpu.getAr() * cpu.getBr());
-                return 1;
+                yield 1;
             case NEG:
                 cpu.setAr(-cpu.getAr());
-                return 1;
+                yield 1;
             case AND:
                 cpu.setAr(cpu.getAr() & cpu.getBr());
-                return 1;
+                yield 1;
             case OR:
                 cpu.setAr(cpu.getAr() | cpu.getBr());
-                return 1;
+                yield 1;
             case NOT:
                 cpu.setAr(~cpu.getAr());
-                return 1;
+                yield 1;
             case CMP:
                 cpu.setTf(cpu.getAr() == cpu.getBr() ? 1 : 0);
-                return 1;
+                yield 1;
             case JL:
-                return cpu.getAr() > cpu.getBr() ? handleJmpCommand(0) : 2;
+                cpu.setAtm(cpu.getAr() > cpu.getBr() ? handleJmpCommand(0) : 2);
+                yield 0;
             case JG:
-                return cpu.getAr() < cpu.getBr() ? handleJmpCommand(0) : 2;
+                cpu.setAtm(cpu.getAr() < cpu.getBr() ? handleJmpCommand(0) : 2);
+                yield 0;
             case JM:
-                return handleJmpCommand(0);
+                cpu.setAtm(handleJmpCommand(0));
+                yield 0;
             case JMR:
-                return handleJmpCommand(1);
+                yield handleJmpCommand(1);
             case JLR:
-                return cpu.getAr() > cpu.getBr() ? handleJmpCommand(1) : 2;
+                yield cpu.getAr() > cpu.getBr() ? handleJmpCommand(1) : 2;
             case JGR:
-                return cpu.getAr() < cpu.getBr() ? handleJmpCommand(1) : 2;
+                yield cpu.getAr() < cpu.getBr() ? handleJmpCommand(1) : 2;
             case LD:
                 cpu.setAr((int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr()));
-                return 2;
+                yield 2;
             case ST:
                 switch (cpu.getMode()) {
                     case 1 -> memoryManager.write(cpu.getAtm() + 1, cpu.getAr(), cpu.getPtr());
                     case 0 -> memoryManager.getMemory().write(cpu.getAtm() + 1, cpu.getAr());
                 }
-                return 2;
+                yield 2;
             case MOVE:
-                return handleMoveCommand();
+                yield handleMoveCommand();
             case HALT:
                 cpu.setExc(0);
-                return 0;
+                yield 0;
             case DEL:
                 cpu.setExc(1);
-                return 0;
+                yield 0;
             case PRINT:
                 System.out.println(cpu.getAr());
-                return 1;
+                yield 1;
             default:
-                return 1;
-        }
+                yield 1;
+        };
+        cpu.setAtm(cpu.getAtm() + atm);
     }
 
     private int handleJmpCommand(int flag) {
-        return flag == 1 ? cpu.getAtm() + (int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr()) : (int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr());
+        int atm = (int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr());
+        return flag == 1 ? cpu.getAtm() + atm : atm;
     }
 
     private int handleMoveCommand() {
