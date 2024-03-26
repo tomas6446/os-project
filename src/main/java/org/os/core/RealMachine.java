@@ -9,9 +9,9 @@ import static org.os.userland.ComputerInterface.VM_ADDRESS;
 @Getter
 public class RealMachine {
     private final MemoryManager memoryManager;
-    private Cpu cpu;
     private final RealMemory realMemory;
     private final PaginationTable paginationTable;
+    private final Cpu cpu;
 
     public RealMachine(RealMemory realMemory, Cpu cpu, MemoryManager memoryManager, PaginationTable paginationTable) {
         this.realMemory = realMemory;

@@ -12,7 +12,6 @@ import static java.lang.System.out;
 
 public class ComputerInterface {
     public static final int REAL_MEMORY_SIZE = 4624;
-    public static final int PAGINATION_TABLE_SIZE = 256; // 16 pages, 16 words per page
     public static final int VM_ADDRESS = 256; // 16 pages, 16 words per page
     private static final int CYCLES = 6;
     private static final Logger LOG = Logger.getLogger(ComputerInterface.class.getName());
@@ -25,6 +24,10 @@ public class ComputerInterface {
 
     public static void main(String[] args) {
         new ComputerInterface();
+    }
+
+    private static int getRegisterInput(String input) {
+        return Integer.parseInt(input.split("=")[1].toUpperCase());
     }
 
     private void initializeComponents() {
@@ -168,10 +171,6 @@ public class ComputerInterface {
                 cpu.setExc(getRegisterInput(input));
             }
         }
-    }
-
-    private static int getRegisterInput(String input) {
-        return Integer.parseInt(input.split("=")[1].toUpperCase());
     }
 
     private void handleDebug(RealMachine realMachine, int debug) {
