@@ -53,7 +53,7 @@ public class MemoryManager {
     public int toRealAddress(int address, int ptr) {
         int pageSize = 16;
         int index = (ptr * 16) + address / pageSize;
-        int frame = paginationTable.get(index, ptr).getUpper();
+        int frame = paginationTable.get(index, ptr).getRight();
         return frame * pageSize + address % pageSize;
     }
 

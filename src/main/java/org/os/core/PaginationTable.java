@@ -26,7 +26,7 @@ public class PaginationTable {
             int index = realMemory.allocate();
             for (int i = 0; i < 16; i++) {
                 if (realMemory.getMemory()[ptr * 16 + i].isFree()) {
-                    realMemory.getMemory()[ptr * 16 + i].setUpper(index);
+                    realMemory.getMemory()[ptr * 16 + i].setRight(index);
                     return;
                 }
             }
@@ -42,7 +42,7 @@ public class PaginationTable {
     public void free(int ptr) {
         realMemory.getMemory()[ptr + 16 * 16] = new Word();
         for (int i = 0; i < 16; i++) {
-            int index = realMemory.read(ptr + i).getUpper();
+            int index = realMemory.read(ptr + i).getRight();
             realMemory.getMemory()[ptr + i] = new Word();
             realMemory.free(index);
         }

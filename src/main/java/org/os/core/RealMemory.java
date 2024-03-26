@@ -27,12 +27,12 @@ public class RealMemory implements Memory {
 
     @Override
     public void writeLower(int address, int value) {
-        memory[address].setLower(value);
+        memory[address].setLeft(value);
     }
 
     @Override
     public long readLower(int address) {
-        return memory[address].getLower();
+        return memory[address].getLeft();
     }
 
     /*
