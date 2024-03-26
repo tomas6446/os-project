@@ -155,23 +155,27 @@ public class ComputerInterface {
             input = scanner.nextLine();
 
             if (input.contains("AR=")) {
-                cpu.setPtr(Integer.parseInt(input.split("=")[1]));
+                cpu.setPtr(getRegisterInput(input));
             } else if (input.contains("BR=")) {
-                cpu.setBr(Integer.parseInt(input.split("=")[1]));
+                cpu.setBr(getRegisterInput(input));
             } else if (input.contains("ATM=")) {
-                cpu.setAtm(Integer.parseInt(input.split("=")[1]));
+                cpu.setAtm(getRegisterInput(input));
             } else if (input.contains("IC=")) {
-                cpu.setIc(Integer.parseInt(input.split("=")[1]));
+                cpu.setIc(getRegisterInput(input));
             } else if (input.contains("PTR=")) {
-                cpu.setPtr(Integer.parseInt(input.split("=")[1]));
+                cpu.setPtr(getRegisterInput(input));
             } else if (input.contains("TF=")) {
-                cpu.setTf(Integer.parseInt(input.split("=")[1]));
+                cpu.setTf(getRegisterInput(input));
             } else if (input.contains("Mode=")) {
-                cpu.setMode(Integer.parseInt(input.split("=")[1]));
+                cpu.setMode(getRegisterInput(input));
             } else if (input.contains("Exc=")) {
-                cpu.setExc(Integer.parseInt(input.split("=")[1]));
+                cpu.setExc(getRegisterInput(input));
             }
         }
+    }
+
+    private static int getRegisterInput(String input) {
+        return Integer.parseInt(input.split("=")[1].toUpperCase());
     }
 
     private void handleDebug(RealMachine realMachine, int debug) {
