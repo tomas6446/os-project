@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.function.ToLongFunction;
 
+import static java.lang.System.out;
+
 public class CodeInterpreter {
     public void load(MemoryManager memoryManager, File file, Cpu cpu) {
         try {
@@ -62,9 +64,9 @@ public class CodeInterpreter {
                     }
                 }
             }
-
+            out.println("Program loaded. Use 'run' command to start the program");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            out.println("Error while reading file: " + e.getMessage());
         }
     }
 

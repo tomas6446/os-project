@@ -33,8 +33,6 @@ public class RealMachine {
         cpu.setAtm(0);
 
         cpu.setModeEnum(ModeEnum.SUPERVISOR);
-
-        System.out.println("Program loaded. Use 'run' command to start the program");
     }
 
 
