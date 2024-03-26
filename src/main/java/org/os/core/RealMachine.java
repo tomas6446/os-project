@@ -39,6 +39,10 @@ public class RealMachine {
 
 
     public void clear(int ptr) {
+        if (!vmExists(ptr)) {
+            System.out.println("Program at index " + ptr + " does not exist");
+            return;
+        }
         memoryManager.free(ptr);
         System.out.println("Program at index " + ptr + " cleared");
     }
@@ -252,5 +256,9 @@ public class RealMachine {
         cpu.setPtr(ptr);
         paginationTable.allocate(ptr);
         memoryManager.write(VM_ADDRESS + ptr, 1, ptr);
+    }
+
+    public boolean vmExists(int index) {
+        return memoryManager.read(VM_ADDRESS + index, index) == 1;
     }
 }

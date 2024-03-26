@@ -47,7 +47,7 @@ public class ComputerInterface {
                     case "load" -> {
                         out.print("Enter file name: ");
                         String fileName = getLine();
-                        realMachine.load(fileName);
+                        handleLoad(realMachine, fileName);
                     }
                     case "clear" -> {
                         out.print("Enter VM number to clear: ");
@@ -59,12 +59,12 @@ public class ComputerInterface {
                         int runVmNumber = Integer.parseInt(scanner.nextLine());
                         handleRun(realMachine, debug, runVmNumber);
                     }
-                    case "stop" -> realMachine.virtualMachineInterrupt();
                     case "debug" -> {
                         out.print("Enter debug mode (1 for on, 0 for off): ");
                         debug = Integer.parseInt(scanner.nextLine());
                         handleDebug(realMachine, debug);
                     }
+                    case "stop" -> realMachine.virtualMachineInterrupt();
                     case "memory" -> showMemoryTable(realMachine);
                     case "cls" -> clearConsole();
                     case "exit" -> {
@@ -76,6 +76,14 @@ public class ComputerInterface {
         } catch (Exception e) {
             LOG.severe("Error: " + e.getMessage());
         }
+    }
+
+    private void handleLoad(RealMachine realMachine, String fileName) {
+        if (fileName.isEmpty()) {
+            out.println("Invalid file name. Please try again.");
+            return;
+        }
+        realMachine.load(fileName);
     }
 
     private String getLine() {
@@ -96,6 +104,19 @@ public class ComputerInterface {
     }
 
     private void handleRun(RealMachine realMachine, int debug, int vmNumber) {
+        if (vmNumber < 0 || vmNumber > 15) {
+            out.println("Invalid VM number. Please enter a number between 0 and 15.");
+            return;
+        }
+        if (realMachine.getCpu().getModeEnum() == null) {
+            out.println("No program loaded. Use 'load' command to load a program.");
+            return;
+        }
+        if (realMachine.vmExists(vmNumber)) {
+            out.println("VM number " + vmNumber + " does not exist.");
+            return;
+        }
+
         if (debug == 1) {
             debugRun(realMachine, vmNumber);
         } else {
@@ -123,6 +144,24 @@ public class ComputerInterface {
                     " Exc: " + cpu.getExc() + "\n");
 
             input = scanner.nextLine();
+
+            if (input.contains("AR=")) {
+                cpu.setPtr(Integer.parseInt(input.split("=")[1]));
+            } else if (input.contains("BR=")) {
+                cpu.setBr(Integer.parseInt(input.split("=")[1]));
+            } else if (input.contains("ATM=")) {
+                cpu.setAtm(Integer.parseInt(input.split("=")[1]));
+            } else if (input.contains("IC=")) {
+                cpu.setIc(Integer.parseInt(input.split("=")[1]));
+            } else if (input.contains("PTR=")) {
+                cpu.setPtr(Integer.parseInt(input.split("=")[1]));
+            } else if (input.contains("TF=")) {
+                cpu.setTf(Integer.parseInt(input.split("=")[1]));
+            } else if (input.contains("Mode=")) {
+                cpu.setMode(Integer.parseInt(input.split("=")[1]));
+            } else if (input.contains("Exc=")) {
+                cpu.setExc(Integer.parseInt(input.split("=")[1]));
+            }
         }
     }
 
