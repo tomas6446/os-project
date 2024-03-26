@@ -52,7 +52,7 @@ public class ComputerInterface {
                     case "clear" -> {
                         out.print("Enter VM number to clear: ");
                         int vmNumber = Integer.parseInt(scanner.nextLine());
-                        realMachine.clear(vmNumber);
+                        handleClear(realMachine, vmNumber);
                     }
                     case "run" -> {
                         out.print("Enter VM number to run: ");
@@ -76,6 +76,14 @@ public class ComputerInterface {
         } catch (Exception e) {
             LOG.severe("Error: " + e.getMessage());
         }
+    }
+
+    private void handleClear(RealMachine realMachine, int vmNumber) {
+        if (!realMachine.vmExists(vmNumber)) {
+            System.out.println("Program at index " + vmNumber + " does not exist");
+            return;
+        }
+        realMachine.clear(vmNumber);
     }
 
     private void handleLoad(RealMachine realMachine, String fileName) {
@@ -112,7 +120,7 @@ public class ComputerInterface {
             out.println("No program loaded. Use 'load' command to load a program.");
             return;
         }
-        if (realMachine.vmExists(vmNumber)) {
+        if (!realMachine.vmExists(vmNumber)) {
             out.println("VM number " + vmNumber + " does not exist.");
             return;
         }

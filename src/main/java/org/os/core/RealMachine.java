@@ -39,10 +39,6 @@ public class RealMachine {
 
 
     public void clear(int ptr) {
-        if (!vmExists(ptr)) {
-            System.out.println("Program at index " + ptr + " does not exist");
-            return;
-        }
         memoryManager.free(ptr);
         System.out.println("Program at index " + ptr + " cleared");
     }
