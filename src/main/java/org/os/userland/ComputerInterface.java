@@ -1,12 +1,10 @@
 package org.os.userland;
 
 import org.os.core.*;
-import org.os.util.CommandReader;
 import org.os.util.CpuVisualiser;
 import org.os.util.MemoryVisualiser;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
@@ -14,111 +12,168 @@ import static java.lang.System.out;
 
 public class ComputerInterface {
     public static final int REAL_MEMORY_SIZE = 4624;
-    public static final int PAGINATION_TABLE_SIZE = 256; // 16 pages, 16 words per page (4 bytes per word)
-    public static final int VM_ADDRESS = 256; // PROC 16 pages, 16 words per page
-    public static final int CYCLES = 6;
+    public static final int PAGINATION_TABLE_SIZE = 256; // 16 pages, 16 words per page
+    public static final int VM_ADDRESS = 256; // 16 pages, 16 words per page
+    private static final int CYCLES = 6;
+    private static final Logger LOG = Logger.getLogger(ComputerInterface.class.getName());
+    private final Scanner scanner = new Scanner(System.in);
 
     public ComputerInterface() {
         out.println("=== Computer started ===");
+        initializeComponents();
+    }
+
+    public static void main(String[] args) {
+        new ComputerInterface();
+    }
+
+    private void initializeComponents() {
         Cpu cpu = new Cpu();
         RealMemory realMemory = new RealMemory(REAL_MEMORY_SIZE);
-        PaginationTable paginationTable = new PaginationTable(realMemory, PAGINATION_TABLE_SIZE);
+        PaginationTable paginationTable = new PaginationTable(realMemory);
         MemoryManager memoryManager = new MemoryManager(cpu, realMemory, paginationTable);
         RealMachine realMachine = new RealMachine(realMemory, cpu, memoryManager, paginationTable);
-        CommandReader commandReader = new CommandReader();
 
-        prompt(commandReader, realMachine);
+        commandLoop(realMachine);
     }
 
-    private void prompt(CommandReader commandReader, RealMachine realMachine) {
-        Logger log = Logger.getLogger(ComputerInterface.class.getName());
+    private void commandLoop(RealMachine realMachine) {
+        int debug = 0;
         try {
-            int debug = 0;
-            do {
-                List<String> commands = commandReader.readCommand();
-                String first = commands.getFirst();
-                switch (first) {
-                    case "load" -> realMachine.load(commands.get(1));
-                    case "clear" -> realMachine.clear(Integer.parseInt(commands.get(1)));
-                    case "run" -> handleRun(realMachine, debug, commands);
-
+            while (true) {
+                displayMenu();
+                String command = getLine();
+                switch (command) {
+                    case "load" -> {
+                        out.print("Enter file name: ");
+                        String fileName = getLine();
+                        realMachine.load(fileName);
+                    }
+                    case "clear" -> {
+                        out.print("Enter VM number to clear: ");
+                        int vmNumber = Integer.parseInt(scanner.nextLine());
+                        realMachine.clear(vmNumber);
+                    }
+                    case "run" -> {
+                        out.print("Enter VM number to run: ");
+                        int runVmNumber = Integer.parseInt(scanner.nextLine());
+                        handleRun(realMachine, debug, runVmNumber);
+                    }
+                    case "stop" -> realMachine.virtualMachineInterrupt();
                     case "debug" -> {
-                        debug = Integer.parseInt(commands.get(1));
+                        out.print("Enter debug mode (1 for on, 0 for off): ");
+                        debug = Integer.parseInt(scanner.nextLine());
                         handleDebug(realMachine, debug);
                     }
-
-                    case "memory" -> showMemoryTable(commandReader, realMachine);
+                    case "memory" -> showMemoryTable(realMachine);
                     case "cls" -> clearConsole();
-                    default -> throw new IllegalStateException("Unexpected value: " + first);
+                    case "exit" -> {
+                        return;
+                    }
+                    default -> out.println("Invalid command. Please try again.");
                 }
-            } while (true);
-        } catch (Exception e) {
-            log.severe("Error: " + e.getMessage());
-        }
-    }
-
-    private static void handleRun(RealMachine realMachine, int debug, List<String> commands) {
-        if (debug == 1) {
-            out.println("Write 'continue' to continue the program. Type 'exit' to exit the program.");
-            Scanner scanner = new Scanner(System.in);
-            String input = scanner.nextLine();
-            if ("continue".equalsIgnoreCase(input)) {
-                realMachine.preRun(Integer.parseInt(commands.get(1)));
-            } else if ("exit".equalsIgnoreCase(input)) {
-                realMachine.virtualMachineInterrupt();
             }
-        } else {
-            realMachine.run(Integer.parseInt(commands.get(1)), CYCLES);
+        } catch (Exception e) {
+            LOG.severe("Error: " + e.getMessage());
         }
     }
 
-    private boolean handleDebug(RealMachine realMachine, int debug) {
+    private String getLine() {
+        return scanner.nextLine().replace(" ", "").toLowerCase();
+    }
+
+    private void displayMenu() {
+        out.printf("%nCommands:%n" +
+                "load - Load a program%n" +
+                "clear - Clear a virtual machine%n" +
+                "run - Run a virtual machine%n" +
+                "stop - Stop a virtual machine%n" +
+                "debug - Toggle debug mode%n" +
+                "memory - Display memory tables%n" +
+                "cls - Clear the console%n" +
+                "exit - Exit the interface%n" +
+                "Enter a command: ");
+    }
+
+    private void handleRun(RealMachine realMachine, int debug, int vmNumber) {
+        if (debug == 1) {
+            debugRun(realMachine, vmNumber);
+        } else {
+            realMachine.run(vmNumber, CYCLES);
+        }
+    }
+
+    private void debugRun(RealMachine realMachine, int vmNumber) {
+        out.println("Press any key to continue the program. Type 'exit' to exit the program.");
+        String input = scanner.nextLine();
+        realMachine.preRun(vmNumber);
+
+        while (!"exit".equalsIgnoreCase(input)) {
+            long command = realMachine.continueRun(vmNumber);
+            Cpu cpu = realMachine.getCpu();
+
+            out.println("Command: " + CodeEnum.byCode(command) +
+                    " AR: " + cpu.getAr() +
+                    " BR: " + cpu.getBr() +
+                    " ATM: " + cpu.getAtm() +
+                    " IC: " + cpu.getIc() +
+                    " PTR: " + cpu.getPtr() +
+                    " TF: " + cpu.getTf() +
+                    " Mode: " + cpu.getModeEnum() +
+                    " Exc: " + cpu.getExc() + "\n");
+
+            input = scanner.nextLine();
+        }
+    }
+
+    private void handleDebug(RealMachine realMachine, int debug) {
         if (debug == 1) {
             out.println("Debug mode started.");
-            return true;
-        } else if (debug == 0) {
+        } else {
             out.println("Debug mode stopped.");
             realMachine.virtualMachineInterrupt();
-            return false;
-        } else {
-            out.println("Invalid input");
         }
-        return true;
     }
 
-    public boolean showMemoryTable(CommandReader commandReader, RealMachine realMachine) throws Exception {
+    private void showMemoryTable(RealMachine realMachine) {
         String input;
         do {
             clearConsole();
-            out.printf("Choose an option:%n1. Pagination Table%n2. Virtual Machines%n3. Virtual Memory%n4. Registers%n5. Exit%n" +
+            out.printf("%nChoose an option:%n" +
+                    "1. Pagination Table%n" +
+                    "2. Virtual Machines%n" +
+                    "3. Virtual Memory%n" +
+                    "4. Full Memory%n" +
+                    "5. Registers%n" +
+                    "0. Exit%n" +
                     "Enter the number of the option: ");
-            input = commandReader.readCommand().getFirst();
+            input = scanner.nextLine();
             MemoryVisualiser memoryVisualiser = new MemoryVisualiser(realMachine.getRealMemory().getMemory());
             CpuVisualiser cpuVisualiser = new CpuVisualiser(realMachine.getCpu());
             switch (input) {
                 case "1" -> memoryVisualiser.showPagination();
                 case "2" -> memoryVisualiser.showVirtualMachines();
                 case "3" -> memoryVisualiser.showVirtualMemory();
-                case "4" -> cpuVisualiser.showRegisters();
-                case "5" -> prompt(commandReader, realMachine);
-                default -> out.println("Invalid input");
+                case "4" -> memoryVisualiser.showFullMemory();
+                case "5" -> cpuVisualiser.showRegisters();
+                case "0" -> {
+                }
+                default -> out.println("Invalid input. Please enter a number between 1 and 5.");
             }
-        } while (!"5".equals(input));
-
-        return true;
+        } while (!"0".equals(input));
     }
 
-    private boolean clearConsole() {
+    private void clearConsole() {
         try {
-            if (System.getProperty("os.name").contains("Windows")) {
+            final String os = System.getProperty("os.name");
+            if (os.contains("Windows")) {
                 new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
             } else {
-                Runtime.getRuntime().exec("clear");
+                // Linux, Unix, Mac OS X
+                out.print("\033\143");
             }
-            return true;
         } catch (IOException | InterruptedException e) {
-            out.println("Error: " + e.getMessage());
+            out.println("Error clearing console: " + e.getMessage());
         }
-        return false;
     }
 }

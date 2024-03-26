@@ -4,7 +4,7 @@ import com.jakewharton.fliptables.FlipTable;
 import org.os.core.Word;
 
 public class MemoryVisualiser {
-    private static final String[] headers = new String[]{"Address", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16"};
+    private static final String[] headers = new String[]{"Address", "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15"};
     private final Word[] memory;
 
     public MemoryVisualiser(Word[] memory) {
@@ -15,7 +15,7 @@ public class MemoryVisualiser {
         String[][] data = new String[16][17];
 
         for (int i = 0; i < 16; i++) {
-            data[i][0] = String.format("%03d", i + 1);
+            data[i][0] = String.format("%03d", i);
             for (int j = 0; j < 16; j++) {
                 int address = i * 16 + j;
                 data[i][j + 1] = memory[address].getWord().toString();
@@ -29,9 +29,10 @@ public class MemoryVisualiser {
     public void showVirtualMachines() {
         String[][] data = new String[1][17];
 
-        data[0][0] = "017";
+        data[0][0] = "016";
         for (int j = 0; j < 16; j++) {
-            data[0][j + 1] = memory[17].getWord().toString();
+            int address = 16 * 16 + j;
+            data[0][j + 1] = memory[address].getWord().toString();
         }
 
         System.out.println("Virtual Machines:");
@@ -42,7 +43,7 @@ public class MemoryVisualiser {
         String[][] data = new String[256][17];
 
         for (int i = 17; i < 273; i++) {
-            data[i - 17][0] = String.format("%03d", i + 1);
+            data[i - 17][0] = String.format("%03d", i);
             for (int j = 0; j < 16; j++) {
                 int address = i * 16 + j;
                 data[i - 17][j + 1] = memory[address].getWord().toString();
@@ -50,6 +51,21 @@ public class MemoryVisualiser {
         }
 
         System.out.println("Virtual Memory:");
+        System.out.println(FlipTable.of(headers, data));
+    }
+
+    public void showFullMemory() {
+        String[][] data = new String[256][17];
+
+        for (int i = 0; i < 256; i++) {
+            data[i][0] = String.format("%03d", i);
+            for (int j = 0; j < 16; j++) {
+                int address = i * 16 + j;
+                data[i][j + 1] = memory[address].getWord().toString();
+            }
+        }
+
+        System.out.println("Full Memory:");
         System.out.println(FlipTable.of(headers, data));
     }
 }

@@ -41,7 +41,7 @@ public class RealMemory implements Memory {
     public int allocate() throws Exception {
         final int blockSize = 16;
         final int realMemoryStart = 16 * 16 + 16;
-        int index = 18;
+        int index = 17;
         for (int i = realMemoryStart; i < size; i += blockSize, index++) {
             boolean blockIsFree = true;
             for (int j = 0; j < blockSize; j++) {

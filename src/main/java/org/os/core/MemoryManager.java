@@ -5,6 +5,7 @@ import lombok.Getter;
 
 import static org.os.userland.ComputerInterface.REAL_MEMORY_SIZE;
 
+
 @Getter
 public class MemoryManager {
     private final Cpu cpu;
@@ -46,11 +47,14 @@ public class MemoryManager {
     /*
      * Convert the virtual address to the real address
      * first 256 is reserved for pagination table
-     * next 16 : 257-273 is reserved for VM
-     * from 373-4368 real memory is available
+     * next 16 : 256-273 is reserved for VM
+     * from 273-4368 real memory
      */
     public int toRealAddress(int address, int ptr) {
-        return paginationTable.get(ptr + address / 16, ptr).getUpper() * 16 + address % 16 - 16;
+        int pageSize = 16;
+        int index = (ptr * 16) + address / pageSize;
+        int frame = paginationTable.get(index, ptr).getUpper();
+        return frame * pageSize + address % pageSize;
     }
 
     public void free(int ptr) {

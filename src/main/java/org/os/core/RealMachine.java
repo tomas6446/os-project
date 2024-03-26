@@ -4,7 +4,6 @@ import lombok.Getter;
 
 import java.io.File;
 
-import static java.lang.System.out;
 import static org.os.userland.ComputerInterface.VM_ADDRESS;
 
 @Getter
@@ -22,29 +21,31 @@ public class RealMachine {
     }
 
     public void load(String programName) {
-        out.println("Loading the program " + programName);
+        System.out.println("Loading the program " + programName);
+
+        cpu.setModeEnum(ModeEnum.SUPERVISOR);
+        createVM();
+        cpu.setModeEnum(ModeEnum.USER);
 
         CodeInterpreter codeInterpreter = new CodeInterpreter();
-        cpu.setModeEnum(ModeEnum.USER);
-        createVM();
-
         File file = new File(programName);
         codeInterpreter.load(memoryManager, file, cpu);
-
-        out.println("Program loaded. Use 'run' command to start the program");
         cpu.setAtm(0);
+
         cpu.setModeEnum(ModeEnum.SUPERVISOR);
+
+        System.out.println("Program loaded. Use 'run' command to start the program");
     }
 
 
     public void clear(int ptr) {
         memoryManager.free(ptr);
-        out.println("Program at index " + ptr + " cleared");
+        System.out.println("Program at index " + ptr + " cleared");
     }
 
     public void preRun(int ptr) {
         cpu.setModeEnum(ModeEnum.USER);
-        out.println("Prerunning the program at index " + ptr);
+        System.out.println("Prerunning the program at index " + ptr);
         cpu.setAr((int) memoryManager.getMemory().readLower(ptr));
         cpu.setBr((int) memoryManager.getMemory().readLower(ptr + 1));
         cpu.setAtm((int) memoryManager.getMemory().readLower(ptr + 2));
@@ -53,10 +54,11 @@ public class RealMachine {
         cpu.setPtr((int) memoryManager.getMemory().readLower(ptr + 5));
     }
 
-    public void continueRun(int ptr) {
+    public long continueRun(int ptr) {
         long command = memoryManager.read(cpu.getAtm(), ptr);
         int atm = handleCommand(command);
         cpu.setAtm(cpu.getAtm() + atm);
+        return command;
     }
 
     public void run(int ptr, int cycleTimes) {
@@ -129,7 +131,7 @@ public class RealMachine {
                 cpu.setExc(1);
                 return 0;
             case PRINT:
-                out.println(cpu.getAr());
+                System.out.println(cpu.getAr());
                 return 1;
             default:
                 return 1;
@@ -218,7 +220,7 @@ public class RealMachine {
     }
 
     public void virtualMachineInterrupt() {
-        out.println("Interrupting the current program");
+        System.out.println("Interrupting the current program");
 
         int address = cpu.getPtr();
         memoryManager.getMemory().writeLower(address, cpu.getAr());
@@ -230,20 +232,17 @@ public class RealMachine {
 
         handleException();
         cpu.setModeEnum(ModeEnum.SUPERVISOR);
-        out.println("Program interrupted");
+        System.out.println("Program interrupted");
     }
 
     private void handleException() {
         if (cpu.getExc() == 1) {
-            out.println("Deleting the program");
+            System.out.println("Deleting the program");
             clear(cpu.getPtr());
         }
     }
 
     private void createVM() {
-        ModeEnum lastMode = cpu.getModeEnum();
-        cpu.setModeEnum(ModeEnum.SUPERVISOR);
-
         int ptr = 0;
         while (memoryManager.read(VM_ADDRESS + ptr, ptr) == 1) {
             ptr++;
@@ -252,7 +251,5 @@ public class RealMachine {
         cpu.setPtr(ptr);
         paginationTable.allocate(ptr);
         memoryManager.write(VM_ADDRESS + ptr, 1, ptr);
-
-        cpu.setModeEnum(lastMode);
     }
 }

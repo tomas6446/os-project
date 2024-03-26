@@ -2,11 +2,9 @@ package org.os.core;
 
 public class PaginationTable {
     private final RealMemory realMemory;
-    private final int size;
 
-    public PaginationTable(RealMemory realMemory, int size) {
+    public PaginationTable(RealMemory realMemory) {
         this.realMemory = realMemory;
-        this.size = size;
     }
 
     /*
@@ -26,10 +24,7 @@ public class PaginationTable {
     public void allocate(int ptr) {
         try {
             int index = realMemory.allocate();
-            final int segmentSize = 16;
-            int startIndex = ptr * segmentSize;
-            int endIndex = startIndex + segmentSize;
-            for (int i = startIndex; i < endIndex && i < size; i++) {
+            for (int i = 0; i < 16; i++) {
                 if (realMemory.getMemory()[ptr * 16 + i].isFree()) {
                     realMemory.getMemory()[ptr * 16 + i].setUpper(index);
                     return;
@@ -45,11 +40,11 @@ public class PaginationTable {
      * Frees the 16 words of memory in pagination table and the real memory
      */
     public void free(int ptr) {
-        realMemory.free(realMemory.getMemory()[ptr].getUpper() + 16 * 16);
+        realMemory.getMemory()[ptr + 16 * 16] = new Word();
         for (int i = 0; i < 16; i++) {
-            int index = realMemory.getMemory()[ptr + i].getUpper();
+            int index = realMemory.read(ptr + i).getUpper();
+            realMemory.getMemory()[ptr + i] = new Word();
             realMemory.free(index);
-            realMemory.free(ptr + i);
         }
     }
 }
