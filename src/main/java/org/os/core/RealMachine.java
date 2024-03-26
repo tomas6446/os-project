@@ -9,7 +9,7 @@ import static org.os.userland.ComputerInterface.VM_ADDRESS;
 @Getter
 public class RealMachine {
     private final MemoryManager memoryManager;
-    private final Cpu cpu;
+    private Cpu cpu;
     private final RealMemory realMemory;
     private final PaginationTable paginationTable;
 
@@ -46,12 +46,29 @@ public class RealMachine {
     public void preRun(int ptr) {
         cpu.setModeEnum(ModeEnum.USER);
         System.out.println("Prerunning the program at index " + ptr);
-        cpu.setAr((int) memoryManager.getMemory().readLower(ptr));
-        cpu.setBr((int) memoryManager.getMemory().readLower(ptr + 1));
-        cpu.setAtm((int) memoryManager.getMemory().readLower(ptr + 2));
-        cpu.setIc((int) memoryManager.getMemory().readLower(ptr + 3));
-        cpu.setTf((int) memoryManager.getMemory().readLower(ptr + 4));
-        cpu.setPtr((int) memoryManager.getMemory().readLower(ptr + 5));
+        cpu.setAr((int) memoryManager.getMemory().readLower(ptr * 16));
+        cpu.setBr((int) memoryManager.getMemory().readLower(ptr * 16 + 1));
+        cpu.setAtm((int) memoryManager.getMemory().readLower(ptr * 16 + 2));
+        cpu.setIc((int) memoryManager.getMemory().readLower(ptr * 16 + 3));
+        cpu.setTf((int) memoryManager.getMemory().readLower(ptr * 16 + 4));
+        cpu.setPtr((int) memoryManager.getMemory().readLower(ptr * 16 + 5));
+        cpu.setPtr(ptr);
+    }
+
+    public void virtualMachineInterrupt() {
+        System.out.println("Interrupting the current program");
+
+        int address = cpu.getPtr() * 16;
+        memoryManager.getMemory().writeLower(address, cpu.getAr());
+        memoryManager.getMemory().writeLower(address + 1, cpu.getBr());
+        memoryManager.getMemory().writeLower(address + 2, cpu.getAtm());
+        memoryManager.getMemory().writeLower(address + 3, cpu.getIc());
+        memoryManager.getMemory().writeLower(address + 4, cpu.getTf());
+        memoryManager.getMemory().writeLower(address + 5, cpu.getPtr());
+
+        handleException();
+        cpu.setModeEnum(ModeEnum.SUPERVISOR);
+        System.out.println("Program interrupted");
     }
 
     public long continueRun(int ptr) {
@@ -217,22 +234,6 @@ public class RealMachine {
             case TF -> cpu.setTf(value);
             default -> throw new IllegalStateException("Unexpected value: " + reg2);
         }
-    }
-
-    public void virtualMachineInterrupt() {
-        System.out.println("Interrupting the current program");
-
-        int address = cpu.getPtr();
-        memoryManager.getMemory().writeLower(address, cpu.getAr());
-        memoryManager.getMemory().writeLower(address + 1, cpu.getBr());
-        memoryManager.getMemory().writeLower(address + 2, cpu.getAtm());
-        memoryManager.getMemory().writeLower(address + 3, cpu.getIc());
-        memoryManager.getMemory().writeLower(address + 4, cpu.getTf());
-        memoryManager.getMemory().writeLower(address + 5, cpu.getPtr());
-
-        handleException();
-        cpu.setModeEnum(ModeEnum.SUPERVISOR);
-        System.out.println("Program interrupted");
     }
 
     private void handleException() {

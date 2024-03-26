@@ -26,7 +26,7 @@ public class CodeInterpreter {
                                 CodeEnum dataCommand = CodeEnum.valueOf(line.split(" ")[0].toUpperCase());
                                 if (dataCommand == CodeEnum.VAL) {
                                     long data = Long.parseLong(line.split(" ")[1]);
-                                    memoryManager.write(cpu.getPtr() + counter, data, cpu.getPtr());
+                                    memoryManager.write(counter, data, cpu.getPtr());
                                     counter++;
                                     valCountToJump++;
                                 }
@@ -39,24 +39,24 @@ public class CodeInterpreter {
                         case CodeEnum.MOVE -> {
                             List<String> moveArgs = List.of(args.get(1).toUpperCase().split(","));
 
-                            memoryManager.write(cpu.getPtr() + counter, command.getCode(), cpu.getPtr());
+                            memoryManager.write(counter, command.getCode(), cpu.getPtr());
                             counter++;
 
                             ToLongFunction<String> getRegValue = (arg) -> isNumber(arg) ? Long.parseLong(arg) : CodeEnum.valueOf(arg).getCode();
                             long value1 = getRegValue.applyAsLong(moveArgs.get(0));
                             long value2 = getRegValue.applyAsLong(moveArgs.get(1));
 
-                            memoryManager.write(cpu.getPtr() + counter, value1, cpu.getPtr());
-                            memoryManager.write(cpu.getPtr() + counter + 1, value2, cpu.getPtr());
+                            memoryManager.write(counter, value1, cpu.getPtr());
+                            memoryManager.write(counter + 1, value2, cpu.getPtr());
                             counter += 2;
                         }
                         case CodeEnum.JM -> {
-                            memoryManager.write(cpu.getPtr() + counter, command.getCode(), cpu.getPtr());
-                            memoryManager.write(cpu.getPtr() + counter + 1, Long.parseLong(args.get(1)), cpu.getPtr());
+                            memoryManager.write(counter, command.getCode(), cpu.getPtr());
+                            memoryManager.write(counter + 1, Long.parseLong(args.get(1)), cpu.getPtr());
                             counter += 2;
                         }
                         default -> {
-                            memoryManager.write(cpu.getPtr() + counter, command.getCode(), cpu.getPtr());
+                            memoryManager.write(counter, command.getCode(), cpu.getPtr());
                             counter++;
                         }
                     }
