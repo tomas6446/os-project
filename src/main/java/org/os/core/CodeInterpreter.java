@@ -37,7 +37,7 @@ public class CodeInterpreter {
                             memoryManager.write(1, 2L + valCountToJump, cpu.getPtr());
                         }
                         case CodeEnum.MOVE -> {
-                            List<String> moveArgs = List.of(args.get(1).toUpperCase().split(","));
+                            List<String> moveArgs = List.of(args.get(1).toUpperCase().toUpperCase().split(","));
 
                             memoryManager.write(counter, command.getCode(), cpu.getPtr());
                             counter++;
@@ -50,7 +50,7 @@ public class CodeInterpreter {
                             memoryManager.write(counter + 1, value2, cpu.getPtr());
                             counter += 2;
                         }
-                        case CodeEnum.JM -> {
+                        case CodeEnum.JM, CodeEnum.JG, CodeEnum.JL, CodeEnum.JLR, CodeEnum.JGR, CodeEnum.LD, CodeEnum.ST -> {
                             memoryManager.write(counter, command.getCode(), cpu.getPtr());
                             memoryManager.write(counter + 1, Long.parseLong(args.get(1)), cpu.getPtr());
                             counter += 2;
