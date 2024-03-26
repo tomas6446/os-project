@@ -22,10 +22,6 @@ public class ComputerInterface {
         initializeComponents();
     }
 
-    public static void main(String[] args) {
-        new ComputerInterface();
-    }
-
     private static int getRegisterInput(String input) {
         return Integer.parseInt(input.split("=")[1].toUpperCase());
     }
