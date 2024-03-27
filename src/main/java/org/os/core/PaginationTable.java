@@ -1,5 +1,7 @@
 package org.os.core;
 
+import com.sun.jdi.VMOutOfMemoryException;
+
 public class PaginationTable {
     private final RealMemory realMemory;
 
@@ -30,7 +32,7 @@ public class PaginationTable {
                     return;
                 }
             }
-            throw new RuntimeException("No free slot available in the specified segment");
+            throw new VMOutOfMemoryException("No free slot available in the specified segment");
         } catch (Exception e) {
             throw new RuntimeException("Allocation failed: " + e.getMessage(), e);
         }

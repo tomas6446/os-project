@@ -1,5 +1,6 @@
 package org.os.core;
 
+import com.sun.jdi.VMOutOfMemoryException;
 import lombok.Getter;
 
 import java.util.stream.IntStream;
@@ -38,7 +39,7 @@ public class RealMemory implements Memory {
     /*
      * This method is used to allocate a block of memory of size 16 if available
      */
-    public int allocate() throws Exception {
+    public int allocate() {
         final int blockSize = 16;
         final int realMemoryStart = 16 * 16 + 16;
         int index = 17;
@@ -54,7 +55,7 @@ public class RealMemory implements Memory {
                 return index;
             }
         }
-        throw new Exception("No free block of size " + blockSize + " is available.");
+        throw new VMOutOfMemoryException("No free block of size " + blockSize + " is available.");
     }
 
     public void free(int index) {

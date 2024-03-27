@@ -1,6 +1,7 @@
 package org.os.core;
 
 
+import com.sun.jdi.VMOutOfMemoryException;
 import lombok.Getter;
 
 import static org.os.userland.ComputerInterface.REAL_MEMORY_SIZE;
@@ -25,7 +26,7 @@ public class MemoryManager {
             case USER:
                 int realAddress = toRealAddress(address, ptr);
                 if (realAddress > REAL_MEMORY_SIZE) {
-                    throw new RuntimeException("Out of memory");
+                    throw new VMOutOfMemoryException("Out of memory");
                 }
                 return realAddress;
             default:

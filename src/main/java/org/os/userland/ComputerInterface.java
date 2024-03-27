@@ -104,16 +104,26 @@ public class ComputerInterface {
         Stream.iterate(scanner.nextLine(), command -> !"exit".equalsIgnoreCase(command), command -> scanner.nextLine())
                 .filter(command -> !command.isEmpty())
                 .forEachOrdered(command -> {
-                    if (handleRegisterSet(realMachine, command) == 0) {
+                    if (handleException(realMachine, command) == 0 && handleRegisterSet(realMachine, command) == 0) {
                         codeInterpreter.loadCommand(realMachine.getMemoryManager(), command, realMachine.getCpu());
-                        if (runByLine) {
-                            realMachine.runSuper(1);
-                        }
+                    }
+                    if (runByLine) {
+                        realMachine.runSuper(1);
                     }
                 });
         if (!runByLine) {
             realMachine.runSuper(1);
         }
+    }
+
+    private int handleException(RealMachine realMachine, String line) {
+        CodeEnum command = CodeEnum.valueOf(line.split(" ")[0].toUpperCase());
+        if (command == CodeEnum.DIV_ZERO || command == CodeEnum.OVERFLOW || command == CodeEnum.OUT_OF_MEMORY) {
+            realMachine.handleCommand(command.getCode());
+            realMachine.virtualMachineInterrupt();
+            return 1;
+        }
+        return 0;
     }
 
     private void displayMenu() {
@@ -144,7 +154,7 @@ public class ComputerInterface {
             out.println("VM number " + vmNumber + " does not exist.");
             return;
         }
-
+        realMachine.getCpu().setModeEnum(ModeEnum.USER);
         if (debug == 1) {
             debugRun(realMachine, vmNumber);
         } else {

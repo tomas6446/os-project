@@ -1,5 +1,6 @@
 package org.os.core;
 
+import com.sun.jdi.VMOutOfMemoryException;
 import lombok.Getter;
 
 import java.io.File;
@@ -22,7 +23,7 @@ public class RealMachine {
     }
 
     public void load(String programName) {
-        System.out.println("Loading the program " + programName);
+        out.println("Loading the program " + programName);
 
         cpu.setModeEnum(ModeEnum.SUPERVISOR);
         createVM();
@@ -39,38 +40,59 @@ public class RealMachine {
 
     public void clear(int ptr) {
         memoryManager.free(ptr);
-        System.out.println("Program at index " + ptr + " cleared");
+        out.println("Program at index " + ptr + " cleared");
     }
 
     public void preRun(int ptr) {
         cpu.setModeEnum(ModeEnum.USER);
-        System.out.println("Prerunning the program at index " + ptr);
-        cpu.setAr((int) memoryManager.getMemory().readLower(ptr * 16));
-        cpu.setBr((int) memoryManager.getMemory().readLower(ptr * 16 + 1));
-        cpu.setAtm((int) memoryManager.getMemory().readLower(ptr * 16 + 2));
-        cpu.setTf((int) memoryManager.getMemory().readLower(ptr * 16 + 3));
-        cpu.setPtr((int) memoryManager.getMemory().readLower(ptr * 16 + 4));
+        out.println("Prerunning the program at index " + ptr);
+        try {
+            cpu.setAr((int) memoryManager.getMemory().readLower(ptr * 16));
+            cpu.setBr((int) memoryManager.getMemory().readLower(ptr * 16 + 1));
+            cpu.setAtm((int) memoryManager.getMemory().readLower(ptr * 16 + 2));
+            cpu.setTf((int) memoryManager.getMemory().readLower(ptr * 16 + 3));
+            cpu.setPtr((int) memoryManager.getMemory().readLower(ptr * 16 + 4));
+        } catch (ArrayIndexOutOfBoundsException | VMOutOfMemoryException e) {
+            cpu.setExc(4);
+            virtualMachineInterrupt();
+            return;
+        }
         cpu.setPtr(ptr);
     }
 
     public void virtualMachineInterrupt() {
-        System.out.println("Interrupting the current program");
+        out.println("Interrupting the current program");
 
         int address = cpu.getPtr() * 16;
-        memoryManager.getMemory().writeLower(address, cpu.getAr());
-        memoryManager.getMemory().writeLower(address + 1, cpu.getBr());
-        memoryManager.getMemory().writeLower(address + 2, cpu.getAtm());
-        memoryManager.getMemory().writeLower(address + 3, cpu.getTf());
-        memoryManager.getMemory().writeLower(address + 4, cpu.getPtr());
+        try {
+            memoryManager.getMemory().writeLower(address, cpu.getAr());
+            memoryManager.getMemory().writeLower(address + 1, cpu.getBr());
+            memoryManager.getMemory().writeLower(address + 2, cpu.getAtm());
+            memoryManager.getMemory().writeLower(address + 3, cpu.getTf());
+            memoryManager.getMemory().writeLower(address + 4, cpu.getPtr());
+        } catch (ArrayIndexOutOfBoundsException e) {
+            cpu.setExc(4);
+            virtualMachineInterrupt();
+            return;
+        }
 
         handleException();
         cpu.setModeEnum(ModeEnum.SUPERVISOR);
         cpu.setTi(0);
-        System.out.println("Program interrupted");
+        out.println("Program interrupted");
     }
 
     public void continueRun(int ptr) {
-        long command = memoryManager.read(cpu.getAtm(), ptr);
+        long command = 0;
+        try {
+            command = memoryManager.read(cpu.getAtm(), ptr);
+        } catch (VMOutOfMemoryException | ArrayIndexOutOfBoundsException e) {
+            cpu.setExc(4);
+            virtualMachineInterrupt();
+            return;
+        } catch (Exception e) {
+            out.println("Error while reading memory: " + e.getMessage());
+        }
         out.println("Command: " + CodeEnum.byCode(command) + "\n" + cpu);
         handleCommand(command);
     }
@@ -93,80 +115,109 @@ public class RealMachine {
         }
     }
 
-    private void handleCommand(long val) {
+    public void handleCommand(long val) {
         CodeEnum command = CodeEnum.byCode(val);
-        int atm = switch (command) {
-            case ADD:
-                cpu.setAr(cpu.getAr() + cpu.getBr());
-                yield 1;
-            case SUB:
-                cpu.setAr(cpu.getAr() - cpu.getBr());
-                yield 1;
-            case DIV:
-                cpu.setAr(cpu.getAr() / cpu.getBr());
-                cpu.setBr(cpu.getAr() % cpu.getBr());
-                yield 1;
-            case MUL:
-                cpu.setAr(cpu.getAr() * cpu.getBr());
-                yield 1;
-            case NEG:
-                cpu.setAr(-cpu.getAr());
-                yield 1;
-            case AND:
-                cpu.setAr(cpu.getAr() & cpu.getBr());
-                yield 1;
-            case OR:
-                cpu.setAr(cpu.getAr() | cpu.getBr());
-                yield 1;
-            case NOT:
-                cpu.setAr(~cpu.getAr());
-                yield 1;
-            case CMP:
-                cpu.setTf(cpu.getAr() == cpu.getBr() ? 1 : 0);
-                yield 1;
-            case JL:
-                cpu.setAtm(cpu.getAr() > cpu.getBr() ? handleJmpCommand(0) : 2);
-                yield 0;
-            case JG:
-                cpu.setAtm(cpu.getAr() < cpu.getBr() ? handleJmpCommand(0) : 2);
-                yield 0;
-            case JM:
-                cpu.setAtm(handleJmpCommand(0));
-                yield 0;
-            case JMR:
-                yield handleJmpCommand(1);
-            case JLR:
-                yield cpu.getAr() > cpu.getBr() ? handleJmpCommand(1) : 2;
-            case JGR:
-                yield cpu.getAr() < cpu.getBr() ? handleJmpCommand(1) : 2;
-            case LD:
-                cpu.setAr((int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr()));
-                yield 2;
-            case ST:
-                switch (cpu.getMode()) {
-                    case 1 -> memoryManager.write(cpu.getAtm() + 1, cpu.getAr(), cpu.getPtr());
-                    case 0 -> memoryManager.getMemory().write(cpu.getAtm() + 1, cpu.getAr());
-                }
-                yield 2;
-            case MOVE:
-                yield handleMoveCommand();
-            case HALT:
-                cpu.setExc(0);
-                yield 0;
-            case DEL:
-                cpu.setExc(1);
-                yield 0;
-            case PRINT:
-                System.out.println(cpu.getAr());
-                yield 1;
-            default:
-                yield 1;
-        };
-        cpu.setAtm(cpu.getAtm() + atm);
+        try {
+            int atm = switch (command) {
+                case ADD:
+                    cpu.setAr(Math.addExact(cpu.getAr(), cpu.getBr()));
+                    yield 1;
+                case SUB:
+                    cpu.setAr(cpu.getAr() - cpu.getBr());
+                    yield 1;
+                case DIV:
+                    try {
+                        cpu.setAr(cpu.getAr() / cpu.getBr());
+                        cpu.setBr(cpu.getAr() % cpu.getBr());
+                    } catch (ArithmeticException e) {
+                        cpu.setExc(2);
+                        virtualMachineInterrupt();
+                    }
+                    yield 1;
+                case MUL:
+                    cpu.setAr(cpu.getAr() * cpu.getBr());
+                    yield 1;
+                case NEG:
+                    cpu.setAr(-cpu.getAr());
+                    yield 1;
+                case AND:
+                    cpu.setAr(cpu.getAr() & cpu.getBr());
+                    yield 1;
+                case OR:
+                    cpu.setAr(cpu.getAr() | cpu.getBr());
+                    yield 1;
+                case NOT:
+                    cpu.setAr(~cpu.getAr());
+                    yield 1;
+                case CMP:
+                    cpu.setTf(cpu.getAr() == cpu.getBr() ? 1 : 0);
+                    yield 1;
+                case JL:
+                    cpu.setAtm(cpu.getAr() > cpu.getBr() ? handleJmpCommand(0) : 2);
+                    yield 0;
+                case JG:
+                    cpu.setAtm(cpu.getAr() < cpu.getBr() ? handleJmpCommand(0) : 2);
+                    yield 0;
+                case JM:
+                    cpu.setAtm(handleJmpCommand(0));
+                    yield 0;
+                case JMR:
+                    yield handleJmpCommand(1);
+                case JLR:
+                    yield cpu.getAr() > cpu.getBr() ? handleJmpCommand(1) : 2;
+                case JGR:
+                    yield cpu.getAr() < cpu.getBr() ? handleJmpCommand(1) : 2;
+                case LD:
+                    cpu.setAr((int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr()));
+                    yield 2;
+                case ST:
+                    switch (cpu.getMode()) {
+                        case 1 -> memoryManager.write(cpu.getAtm() + 1, cpu.getAr(), cpu.getPtr());
+                        case 0 -> memoryManager.getMemory().write(cpu.getAtm() + 1, cpu.getAr());
+                    }
+                    yield 2;
+                case MOVE:
+                    yield handleMoveCommand();
+                case HALT:
+                    cpu.setExc(0);
+                    yield 0;
+                case DEL:
+                    cpu.setExc(1);
+                    yield 0;
+                case DIV_ZERO:
+                    cpu.setExc(2);
+                    yield 0;
+                case OVERFLOW:
+                    cpu.setExc(3);
+                    yield 0;
+                case OUT_OF_MEMORY:
+                    cpu.setExc(4);
+                    yield 0;
+                case PRINT:
+                    out.println(cpu.getAr());
+                    yield 1;
+                default:
+                    yield 1;
+            };
+            cpu.setAtm(cpu.getAtm() + atm);
+        } catch (VMOutOfMemoryException e) {
+            cpu.setExc(4);
+            virtualMachineInterrupt();
+        } catch (ArithmeticException e) {
+            cpu.setExc(3);
+            virtualMachineInterrupt();
+        }
     }
 
     private int handleJmpCommand(int flag) {
-        int atm = (int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr());
+        int atm;
+        try {
+            atm = (int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr());
+        } catch (VMOutOfMemoryException | ArrayIndexOutOfBoundsException e) {
+            cpu.setExc(4);
+            virtualMachineInterrupt();
+            return 0;
+        }
         return flag == 1 ? cpu.getAtm() + atm : atm;
     }
 
@@ -208,7 +259,14 @@ public class RealMachine {
     }
 
     private int handleValueToRegisterMove(CodeEnum reg2, long arg1) {
-        long value = memoryManager.read((int) arg1, cpu.getPtr());
+        long value;
+        try {
+            value = memoryManager.read((int) arg1, cpu.getPtr());
+        } catch (VMOutOfMemoryException | ArrayIndexOutOfBoundsException e) {
+            cpu.setExc(4);
+            virtualMachineInterrupt();
+            return 0;
+        }
         switch (reg2) {
             case AR -> cpu.setAr((int) value);
             case BR -> cpu.setBr((int) value);
@@ -244,21 +302,49 @@ public class RealMachine {
     }
 
     private void handleException() {
-        if (cpu.getExc() == 1) {
-            System.out.println("Deleting the program");
+        if (cpu.getExc() == 0) {
+            out.println("Exception detected: program halted");
+        } else if (cpu.getExc() == 1) {
+            out.println("Exception detected: program deleted");
             clear(cpu.getPtr());
+        } else if (cpu.getExc() == 2) {
+            out.println("Exception detected: division by zero");
+            exception();
+        } else if (cpu.getExc() == 3) {
+            out.println("Exception detected: overflow");
+            exception();
+        } else if (cpu.getExc() == 4) {
+            out.println("Exception detected: memory error");
+            exception();
         }
+    }
+
+    private void exception() {
+        cpu.setModeEnum(ModeEnum.SUPERVISOR);
+        int atm = cpu.getAtm();
+        int cs = cpu.getCs();
+        cpu.setAtm(4320);
+        cpu.setCs(4320);
+        for (int i = 0; i < 5; i++) {
+            continueRun(-1);
+        }
+        cpu.setAtm(atm);
+        cpu.setCs(cs);
     }
 
     private void createVM() {
         int ptr = 0;
-        while (memoryManager.read(VM_ADDRESS + ptr, ptr) == 1) {
-            ptr++;
+        try {
+            while (memoryManager.read(VM_ADDRESS + ptr, ptr) == 1) {
+                ptr++;
+            }
+            cpu.setPtr(ptr);
+            paginationTable.allocate(ptr);
+            memoryManager.write(VM_ADDRESS + ptr, 1, ptr);
+        } catch (ArrayIndexOutOfBoundsException | VMOutOfMemoryException e) {
+            cpu.setExc(4);
+            virtualMachineInterrupt();
         }
-
-        cpu.setPtr(ptr);
-        paginationTable.allocate(ptr);
-        memoryManager.write(VM_ADDRESS + ptr, 1, ptr);
     }
 
     public boolean vmExists(int index) {
