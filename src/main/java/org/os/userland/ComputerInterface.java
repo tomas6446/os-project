@@ -182,6 +182,8 @@ public class ComputerInterface {
                     " ATM: " + realMachine.getCpu().getAtm() +
                     " PTR: " + realMachine.getCpu().getPtr() +
                     " TF: " + realMachine.getCpu().getTf() +
+                    " CS: " + realMachine.getCpu().getCs() +
+                    " IT: " + realMachine.getCpu().getTi() +
                     " Mode: " + realMachine.getCpu().getModeEnum() +
                     " Exc: " + realMachine.getCpu().getExc() + "\n");
 

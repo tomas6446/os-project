@@ -4,6 +4,7 @@ import lombok.Getter;
 
 import java.io.File;
 
+import static java.lang.System.out;
 import static org.os.userland.ComputerInterface.VM_ADDRESS;
 
 @Getter
@@ -70,6 +71,18 @@ public class RealMachine {
 
     public long continueRun(int ptr) {
         long command = memoryManager.read(cpu.getAtm(), ptr);
+
+        out.println("Command: " + CodeEnum.byCode(command) +
+                " AR: " + cpu.getAr() +
+                " BR: " + cpu.getBr() +
+                " ATM: " + cpu.getAtm() +
+                " PTR: " + cpu.getPtr() +
+                " TF: " + cpu.getTf() +
+                " CS: " + cpu.getCs() +
+                " IT: " + cpu.getTi() +
+                " Mode: " + cpu.getModeEnum() +
+                " Exc: " + cpu.getExc() + "\n");
+
         handleCommand(command);
         return command;
     }
@@ -83,8 +96,8 @@ public class RealMachine {
     }
 
     /*
-        * This method is used to run the program in super mode
-        * -1 denotes that the program is running in super mode (RAND INT)
+     * This method is used to run the program in super mode
+     * -1 denotes that the program is running in super mode (RAND INT)
      */
     public void runSuper(int cycles) {
         for (int i = 0; i < cycles; i++) {
