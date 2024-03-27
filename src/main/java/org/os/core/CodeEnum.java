@@ -8,7 +8,8 @@ import java.util.Arrays;
 @Getter
 @AllArgsConstructor
 public enum CodeEnum {
-    ADD("ADD", 0x00),
+    EMPTY("EMPTY", 0x00),
+    ADD("ADD", 0x22),
     SUB("SUB", 0x01),
     MUL("MUL", 0x02),
     DIV("DIV", 0x03),

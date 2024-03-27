@@ -96,6 +96,8 @@ public class ComputerInterface {
             }
         } catch (Exception e) {
             LOG.severe("Error: " + e.getMessage());
+        } finally {
+            scanner.close();
         }
     }
 
@@ -155,6 +157,7 @@ public class ComputerInterface {
             return;
         }
         realMachine.getCpu().setModeEnum(ModeEnum.USER);
+
         if (debug == 1) {
             debugRun(realMachine, vmNumber);
         } else {
