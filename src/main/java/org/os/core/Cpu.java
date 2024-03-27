@@ -6,7 +6,6 @@ import lombok.Data;
 public class Cpu {
     private int ar;
     private int br;
-    private int ic;
     private int tf;
     private int ptr;
     private int cs;

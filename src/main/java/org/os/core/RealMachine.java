@@ -47,9 +47,8 @@ public class RealMachine {
         cpu.setAr((int) memoryManager.getMemory().readLower(ptr * 16));
         cpu.setBr((int) memoryManager.getMemory().readLower(ptr * 16 + 1));
         cpu.setAtm((int) memoryManager.getMemory().readLower(ptr * 16 + 2));
-        cpu.setIc((int) memoryManager.getMemory().readLower(ptr * 16 + 3));
-        cpu.setTf((int) memoryManager.getMemory().readLower(ptr * 16 + 4));
-        cpu.setPtr((int) memoryManager.getMemory().readLower(ptr * 16 + 5));
+        cpu.setTf((int) memoryManager.getMemory().readLower(ptr * 16 + 3));
+        cpu.setPtr((int) memoryManager.getMemory().readLower(ptr * 16 + 4));
         cpu.setPtr(ptr);
     }
 
@@ -60,12 +59,12 @@ public class RealMachine {
         memoryManager.getMemory().writeLower(address, cpu.getAr());
         memoryManager.getMemory().writeLower(address + 1, cpu.getBr());
         memoryManager.getMemory().writeLower(address + 2, cpu.getAtm());
-        memoryManager.getMemory().writeLower(address + 3, cpu.getIc());
-        memoryManager.getMemory().writeLower(address + 4, cpu.getTf());
-        memoryManager.getMemory().writeLower(address + 5, cpu.getPtr());
+        memoryManager.getMemory().writeLower(address + 3, cpu.getTf());
+        memoryManager.getMemory().writeLower(address + 4, cpu.getPtr());
 
         handleException();
         cpu.setModeEnum(ModeEnum.SUPERVISOR);
+        cpu.setTi(0);
         System.out.println("Program interrupted");
     }
 
@@ -77,8 +76,7 @@ public class RealMachine {
 
     public void run(int ptr, int cycleTimes) {
         preRun(ptr);
-        while (cycleTimes > 0) {
-            cycleTimes--;
+        for (; cpu.getTi() < cycleTimes; cpu.setTi(cpu.getTi() + 1)) {
             continueRun(ptr);
         }
         virtualMachineInterrupt();
@@ -186,7 +184,6 @@ public class RealMachine {
             case AR -> cpu.getAr();
             case BR -> cpu.getBr();
             case ATM -> cpu.getAtm();
-            case IC -> cpu.getIc();
             case PTR -> cpu.getPtr();
             case TF -> cpu.getTf();
             default -> throw new IllegalStateException("Unexpected value: " + reg2);
@@ -205,7 +202,6 @@ public class RealMachine {
             case AR -> cpu.setAr((int) value);
             case BR -> cpu.setBr((int) value);
             case ATM -> cpu.setAtm((int) value);
-            case IC -> cpu.setIc((int) value);
             case PTR -> cpu.setPtr((int) value);
             case TF -> cpu.setTf((int) value);
             default -> throw new IllegalStateException("Unexpected value: " + reg2);
@@ -218,7 +214,6 @@ public class RealMachine {
             case AR -> setRegisterValue(reg2, cpu.getAr());
             case BR -> setRegisterValue(reg2, cpu.getBr());
             case ATM -> setRegisterValue(reg2, cpu.getAtm());
-            case IC -> setRegisterValue(reg2, cpu.getIc());
             case PTR -> setRegisterValue(reg2, cpu.getPtr());
             case TF -> setRegisterValue(reg2, cpu.getTf());
             default -> throw new IllegalStateException("Unexpected value: " + reg2);
@@ -231,7 +226,6 @@ public class RealMachine {
             case AR -> cpu.setAr(value);
             case BR -> cpu.setBr(value);
             case ATM -> cpu.setAtm(value);
-            case IC -> cpu.setIc(value);
             case PTR -> cpu.setPtr(value);
             case TF -> cpu.setTf(value);
             default -> throw new IllegalStateException("Unexpected value: " + reg2);

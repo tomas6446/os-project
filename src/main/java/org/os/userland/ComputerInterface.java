@@ -7,13 +7,14 @@ import org.os.util.MemoryVisualiser;
 import java.io.IOException;
 import java.util.Scanner;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static java.lang.System.out;
 
 public class ComputerInterface {
     public static final int REAL_MEMORY_SIZE = 4624;
     public static final int VM_ADDRESS = 256; // 16 pages, 16 words per page
-    private static final int CYCLES = 6;
+    private static final int CYCLES = 10;
     private static final Logger LOG = Logger.getLogger(ComputerInterface.class.getName());
     private final Scanner scanner = new Scanner(System.in);
 
@@ -64,6 +65,11 @@ public class ComputerInterface {
                         debug = Integer.parseInt(scanner.nextLine());
                         handleDebug(realMachine, debug);
                     }
+                    case "super" -> {
+                        out.println("Mode set to SUPERVISOR");
+                        realMachine.getCpu().setModeEnum(ModeEnum.SUPERVISOR);
+                        handleSuper(realMachine);
+                    }
                     case "stop" -> realMachine.virtualMachineInterrupt();
                     case "memory" -> showMemoryTable(realMachine);
                     case "cls" -> clearConsole();
@@ -76,6 +82,18 @@ public class ComputerInterface {
         } catch (Exception e) {
             LOG.severe("Error: " + e.getMessage());
         }
+    }
+
+    private void handleSuper(RealMachine realMachine) {
+        CodeInterpreter codeInterpreter = new CodeInterpreter();
+        Stream.iterate(scanner.nextLine(), command -> !"exit".equalsIgnoreCase(command), command -> scanner.nextLine())
+                .filter(command -> !command.isEmpty())
+                .forEachOrdered(command -> {
+                    handleRegisterSet(realMachine, command);
+                    codeInterpreter.loadCommand(realMachine.getMemoryManager(), command, realMachine.getCpu());
+                });
+        out.println("MOVE super mode to user mode");
+        realMachine.getCpu().setModeEnum(ModeEnum.USER);
     }
 
     private void handleClear(RealMachine realMachine, int vmNumber) {
@@ -140,7 +158,6 @@ public class ComputerInterface {
                     " AR: " + realMachine.getCpu().getAr() +
                     " BR: " + realMachine.getCpu().getBr() +
                     " ATM: " + realMachine.getCpu().getAtm() +
-                    " IC: " + realMachine.getCpu().getIc() +
                     " PTR: " + realMachine.getCpu().getPtr() +
                     " TF: " + realMachine.getCpu().getTf() +
                     " Mode: " + realMachine.getCpu().getModeEnum() +
@@ -148,23 +165,28 @@ public class ComputerInterface {
 
             input = scanner.nextLine();
 
-            if (input.contains("AR=")) {
-                realMachine.getCpu().setPtr(getRegisterInput(input));
-            } else if (input.contains("BR=")) {
-                realMachine.getCpu().setBr(getRegisterInput(input));
-            } else if (input.contains("ATM=")) {
-                realMachine.getCpu().setAtm(getRegisterInput(input));
-            } else if (input.contains("IC=")) {
-                realMachine.getCpu().setIc(getRegisterInput(input));
-            } else if (input.contains("PTR=")) {
-                realMachine.getCpu().setPtr(getRegisterInput(input));
-            } else if (input.contains("TF=")) {
-                realMachine.getCpu().setTf(getRegisterInput(input));
-            } else if (input.contains("Mode=")) {
-                realMachine.getCpu().setMode(getRegisterInput(input));
-            } else if (input.contains("Exc=")) {
-                realMachine.getCpu().setExc(getRegisterInput(input));
-            }
+            handleRegisterSet(realMachine, input);
+        }
+    }
+
+    private static void handleRegisterSet(RealMachine realMachine, String input) {
+        if (!input.contains("=") || input.split("=").length != 2) {
+            return;
+        }
+        if (input.contains("AR=")) {
+            realMachine.getCpu().setPtr(getRegisterInput(input));
+        } else if (input.contains("BR=")) {
+            realMachine.getCpu().setBr(getRegisterInput(input));
+        } else if (input.contains("ATM=")) {
+            realMachine.getCpu().setAtm(getRegisterInput(input));
+        } else if (input.contains("PTR=")) {
+            realMachine.getCpu().setPtr(getRegisterInput(input));
+        } else if (input.contains("TF=")) {
+            realMachine.getCpu().setTf(getRegisterInput(input));
+        } else if (input.contains("Mode=")) {
+            realMachine.getCpu().setModeEnum(ModeEnum.valueOf(input));
+        } else if (input.contains("Exc=")) {
+            realMachine.getCpu().setExc(getRegisterInput(input));
         }
     }
 
