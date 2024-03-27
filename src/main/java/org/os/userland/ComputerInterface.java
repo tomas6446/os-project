@@ -119,6 +119,9 @@ public class ComputerInterface {
     }
 
     private int handleException(RealMachine realMachine, String line) {
+        if (!line.contains(" ") || line.split(" ").length != 2) {
+            return 0;
+        }
         CodeEnum command = CodeEnum.valueOf(line.split(" ")[0].toUpperCase());
         if (command == CodeEnum.DIV_ZERO || command == CodeEnum.OVERFLOW || command == CodeEnum.OUT_OF_MEMORY) {
             realMachine.handleCommand(command.getCode());

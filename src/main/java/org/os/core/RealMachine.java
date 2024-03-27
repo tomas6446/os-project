@@ -32,8 +32,13 @@ public class RealMachine {
 
             CodeInterpreter codeInterpreter = new CodeInterpreter();
             File file = new File(programName);
+
+            cpu.setAtm(0);
+            cpu.setCs(0);
             codeInterpreter.load(memoryManager, file, cpu);
             cpu.setAtm(0);
+            cpu.setCs(0);
+            cpu.setExc(0);
 
             cpu.setModeEnum(ModeEnum.SUPERVISOR);
         } catch (VMOutOfMemoryException | ArrayIndexOutOfBoundsException e) {
