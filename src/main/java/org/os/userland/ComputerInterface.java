@@ -216,6 +216,9 @@ public class ComputerInterface {
         } else if (input.contains("TF=")) {
             realMachine.getCpu().setTf(getRegisterInput(input));
             return 1;
+        } else if (input.contains("TI=")) {
+            realMachine.getCpu().setTi(getRegisterInput(input));
+            return 1;
         } else if (input.contains("Mode=")) {
             realMachine.getCpu().setModeEnum(ModeEnum.valueOf(input));
             return 1;
