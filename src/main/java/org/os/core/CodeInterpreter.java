@@ -10,17 +10,22 @@ import java.util.function.ToLongFunction;
 import static java.lang.System.out;
 
 public class CodeInterpreter {
-    private int counter = 0;
+
+    private void increaseCounter(Cpu cpu, int value) {
+        cpu.setCs(cpu.getCs() + value);
+    }
+
     public void load(MemoryManager memoryManager, File file, Cpu cpu) {
         try {
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 String line;
                 memoryManager.write(0, CodeEnum.JM.getCode(), cpu.getPtr()); // jump to the first command
-                counter += 2;
+                increaseCounter(cpu, 2);
 
                 while ((line = reader.readLine()) != null) {
                     List<String> args = List.of(line.split(" "));
                     CodeEnum command = CodeEnum.valueOf(args.getFirst().toUpperCase());
+                    int counter;
                     counter = switch (command) {
                         case DATA_SEGMENT -> handleSegment(memoryManager, cpu, reader);
                         case CodeEnum.MOVE -> handleMove(memoryManager, cpu, args, command);
@@ -28,6 +33,7 @@ public class CodeInterpreter {
                                 handleOther(memoryManager, command.getCode(), cpu, Long.parseLong(args.get(1)));
                         default -> handleDefault(memoryManager, command.getCode(), cpu);
                     };
+                    cpu.setCs(counter);
                 }
             }
             out.println("Program loaded. Use 'run' command to start the program");
@@ -55,25 +61,24 @@ public class CodeInterpreter {
 
     private int handleVal(MemoryManager memoryManager, Cpu cpu, List<String> args) {
         if (args.size() != 2) {
-            return counter;
+            return cpu.getCs();
         }
         long data = Long.parseLong(args.get(1));
-        counter = handleDefault(memoryManager, data, cpu);
-        return counter;
+        return handleDefault(memoryManager, data, cpu);
     }
 
     private int handleDefault(MemoryManager memoryManager, long command, Cpu cpu) {
-        memoryManager.write(counter, command, cpu.getPtr());
-        counter++;
-        return counter;
+        memoryManager.write(cpu.getCs(), command, cpu.getPtr());
+        increaseCounter(cpu, 1);
+        return cpu.getCs();
     }
 
 
     private int handleOther(MemoryManager memoryManager, long command, Cpu cpu, long args) {
-        memoryManager.write(counter, command, cpu.getPtr());
-        memoryManager.write(counter + 1, args, cpu.getPtr());
-        counter += 2;
-        return counter;
+        memoryManager.write(cpu.getCs(), command, cpu.getPtr());
+        memoryManager.write(cpu.getCs() + 1, args, cpu.getPtr());
+        increaseCounter(cpu, 2);
+        return cpu.getCs();
     }
 
     private int handleSegment(MemoryManager memoryManager, Cpu cpu, BufferedReader reader) throws IOException {
@@ -83,7 +88,8 @@ public class CodeInterpreter {
             CodeEnum dataCommand = CodeEnum.valueOf(line.split(" ")[0].toUpperCase());
             if (dataCommand == CodeEnum.VAL) {
                 long data = Long.parseLong(line.split(" ")[1]);
-                counter = handleDefault(memoryManager, data, cpu);
+                int counter = handleDefault(memoryManager, data, cpu);
+                cpu.setCs(counter);
                 valCountToJump++;
             }
             if (dataCommand == CodeEnum.CODE_SEGMENT) {
@@ -91,19 +97,20 @@ public class CodeInterpreter {
             }
         }
         memoryManager.write(1, 2L + valCountToJump, cpu.getPtr());
-        return counter;
+        return cpu.getCs();
     }
 
     private int handleMove(MemoryManager memoryManager, Cpu cpu, List<String> args, CodeEnum command) {
         List<String> moveArgs = List.of(args.get(1).toUpperCase().toUpperCase().split(","));
 
-        counter = handleDefault(memoryManager, command.getCode(), cpu);
+        int counter = handleDefault(memoryManager, command.getCode(), cpu);
+        cpu.setCs(counter);
 
         ToLongFunction<String> getRegValue = (arg) -> isNumber(arg) ? Long.parseLong(arg) : CodeEnum.valueOf(arg).getCode();
         long value1 = getRegValue.applyAsLong(moveArgs.get(0));
         long value2 = getRegValue.applyAsLong(moveArgs.get(1));
 
         handleOther(memoryManager, value1, cpu, value2);
-        return counter;
+        return cpu.getCs();
     }
 }
