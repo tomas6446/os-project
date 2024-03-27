@@ -72,16 +72,7 @@ public class RealMachine {
     public long continueRun(int ptr) {
         long command = memoryManager.read(cpu.getAtm(), ptr);
 
-        out.println("Command: " + CodeEnum.byCode(command) +
-                " AR: " + cpu.getAr() +
-                " BR: " + cpu.getBr() +
-                " ATM: " + cpu.getAtm() +
-                " PTR: " + cpu.getPtr() +
-                " TF: " + cpu.getTf() +
-                " CS: " + cpu.getCs() +
-                " IT: " + cpu.getTi() +
-                " Mode: " + cpu.getModeEnum() +
-                " Exc: " + cpu.getExc() + "\n");
+        out.println("Command: " + CodeEnum.byCode(command) + "\n" + cpu);
 
         handleCommand(command);
         return command;

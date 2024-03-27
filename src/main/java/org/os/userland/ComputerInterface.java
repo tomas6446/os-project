@@ -176,16 +176,7 @@ public class ComputerInterface {
         while (!"exit".equalsIgnoreCase(input)) {
             long command = realMachine.continueRun(vmNumber);
 
-            out.println("Command: " + CodeEnum.byCode(command) +
-                    " AR: " + realMachine.getCpu().getAr() +
-                    " BR: " + realMachine.getCpu().getBr() +
-                    " ATM: " + realMachine.getCpu().getAtm() +
-                    " PTR: " + realMachine.getCpu().getPtr() +
-                    " TF: " + realMachine.getCpu().getTf() +
-                    " CS: " + realMachine.getCpu().getCs() +
-                    " IT: " + realMachine.getCpu().getTi() +
-                    " Mode: " + realMachine.getCpu().getModeEnum() +
-                    " Exc: " + realMachine.getCpu().getExc() + "\n");
+            out.println("Command: " + CodeEnum.byCode(command) + "\n" + realMachine.getCpu().toString());
 
             input = scanner.nextLine();
 

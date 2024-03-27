@@ -17,4 +17,19 @@ public class Cpu {
     private int mode;
 
     private ModeEnum modeEnum;
+
+    public String toString() {
+        return "CPU Registers:\n" +
+                "--------------\n" +
+                "AR:    " + ar + "\n" +
+                "BR:    " + br + "\n" +
+                "ATM:   " + atm + "\n" +
+                "PTR:   " + ptr + "\n" +
+                "TF:    " + tf + "\n" +
+                "CS:    " + cs + "\n" +
+                "IT:    " + ti + "\n" +
+                "Mode:  " + modeEnum + "\n" +
+                "Exc:   " + exc + "\n" +
+                "--------------" + "\n";
+    }
 }
