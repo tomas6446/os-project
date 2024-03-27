@@ -82,8 +82,12 @@ public class RealMachine {
         virtualMachineInterrupt();
     }
 
+    /*
+        * This method is used to run the program in super mode
+        * -1 denotes that the program is running in super mode (RAND INT)
+     */
     public void runSuper() {
-        // TODO: RUN SUPERVISOR
+        continueRun(-1);
     }
 
     private void handleCommand(long val) {

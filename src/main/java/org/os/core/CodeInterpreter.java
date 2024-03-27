@@ -74,9 +74,9 @@ public class CodeInterpreter {
     }
 
 
-    private int handleOther(MemoryManager memoryManager, long command, Cpu cpu, long args) {
-        memoryManager.write(cpu.getCs(), command, cpu.getPtr());
-        memoryManager.write(cpu.getCs() + 1, args, cpu.getPtr());
+    private int handleOther(MemoryManager memoryManager, long reg, Cpu cpu, long val) {
+        memoryManager.write(cpu.getCs(), reg, cpu.getPtr());
+        memoryManager.write(cpu.getCs() + 1, val, cpu.getPtr());
         increaseCounter(cpu, 2);
         return cpu.getCs();
     }

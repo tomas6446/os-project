@@ -70,9 +70,10 @@ public class ComputerInterface {
                         realMachine.getCpu().setModeEnum(ModeEnum.SUPERVISOR);
                         handleSuper(realMachine);
                     }
-                    case "runsuper" -> {
+                    case "super_run" -> {
+                        out.println("Running in SUPERVISOR mode.");
                         realMachine.getCpu().setModeEnum(ModeEnum.SUPERVISOR);
-                        handleRun(realMachine, debug, -1);
+                        realMachine.runSuper();
                     }
                     case "stop" -> realMachine.virtualMachineInterrupt();
                     case "memory" -> showMemoryTable(realMachine);
@@ -93,27 +94,13 @@ public class ComputerInterface {
         Stream.iterate(scanner.nextLine(), command -> !"exit".equalsIgnoreCase(command), command -> scanner.nextLine())
                 .filter(command -> !command.isEmpty())
                 .forEachOrdered(command -> {
-                    handleRegisterSet(realMachine, command);
-                    codeInterpreter.loadCommand(realMachine.getMemoryManager(), command, realMachine.getCpu());
+                    if (handleRegisterSet(realMachine, command) == 0) {
+                        codeInterpreter.loadCommand(realMachine.getMemoryManager(), command, realMachine.getCpu());
+                        realMachine.continueRun(realMachine.getCpu().getPtr());
+                    }
                 });
         out.println("MOVE super mode to user mode");
         realMachine.getCpu().setModeEnum(ModeEnum.USER);
-    }
-
-    private void handleClear(RealMachine realMachine, int vmNumber) {
-        realMachine.clear(vmNumber);
-    }
-
-    private void handleLoad(RealMachine realMachine, String fileName) {
-        if (fileName.isEmpty()) {
-            out.println("Invalid file name. Please try again.");
-            return;
-        }
-        realMachine.load(fileName);
-    }
-
-    private String getLine() {
-        return scanner.nextLine().replace(" ", "").toLowerCase();
     }
 
     private void displayMenu() {
@@ -123,7 +110,7 @@ public class ComputerInterface {
                 "run - Run a virtual machine%n" +
                 "stop - Stop a virtual machine%n" +
                 "super - Enter super mode%n" +
-                "runsuper - Run a program in super mode%n" +
+                "super_run - Run in super mode%n" +
                 "debug - Toggle debug mode%n" +
                 "memory - Display memory tables%n" +
                 "cls - Clear the console%n" +
@@ -157,6 +144,22 @@ public class ComputerInterface {
         }
     }
 
+    private void handleClear(RealMachine realMachine, int vmNumber) {
+        realMachine.clear(vmNumber);
+    }
+
+    private void handleLoad(RealMachine realMachine, String fileName) {
+        if (fileName.isEmpty()) {
+            out.println("Invalid file name. Please try again.");
+            return;
+        }
+        realMachine.load(fileName);
+    }
+
+    private String getLine() {
+        return scanner.nextLine().replace(" ", "").toLowerCase();
+    }
+
     private void debugRun(RealMachine realMachine, int vmNumber) {
         out.println("Press any key to continue the program. Type 'exit' to exit the program.");
         String input = scanner.nextLine();
@@ -180,25 +183,34 @@ public class ComputerInterface {
         }
     }
 
-    private static void handleRegisterSet(RealMachine realMachine, String input) {
+    private int handleRegisterSet(RealMachine realMachine, String input) {
         if (!input.contains("=") || input.split("=").length != 2) {
-            return;
+            return 0;
         }
         if (input.contains("AR=")) {
             realMachine.getCpu().setPtr(getRegisterInput(input));
+            return 1;
         } else if (input.contains("BR=")) {
             realMachine.getCpu().setBr(getRegisterInput(input));
+            return 1;
         } else if (input.contains("ATM=")) {
             realMachine.getCpu().setAtm(getRegisterInput(input));
-        } else if (input.contains("PTR=")) {
-            realMachine.getCpu().setPtr(getRegisterInput(input));
+            realMachine.getCpu().setCs(getRegisterInput(input));
+            return 1;
+        } else if (input.contains("CS=")) {
+            realMachine.getCpu().setCs(getRegisterInput(input));
+            return 1;
         } else if (input.contains("TF=")) {
             realMachine.getCpu().setTf(getRegisterInput(input));
+            return 1;
         } else if (input.contains("Mode=")) {
             realMachine.getCpu().setModeEnum(ModeEnum.valueOf(input));
+            return 1;
         } else if (input.contains("Exc=")) {
             realMachine.getCpu().setExc(getRegisterInput(input));
+            return 1;
         }
+        return 0;
     }
 
     private void handleDebug(RealMachine realMachine, int debug) {
