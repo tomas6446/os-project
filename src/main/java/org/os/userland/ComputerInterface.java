@@ -118,6 +118,7 @@ public class ComputerInterface {
                 "clear - Clear a virtual machine%n" +
                 "run - Run a virtual machine%n" +
                 "stop - Stop a virtual machine%n" +
+                "super - Enter super mode%n" +
                 "debug - Toggle debug mode%n" +
                 "memory - Display memory tables%n" +
                 "cls - Clear the console%n" +

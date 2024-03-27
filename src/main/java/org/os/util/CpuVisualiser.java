@@ -24,6 +24,6 @@ public class CpuVisualiser {
         String[] headers = {"Register", "Value"};
         System.out.println("Registers:");
         System.out.println(FlipTable.of(headers, data));
-        out.println("Mode" + cpu.getModeEnum());
+        out.println("Mode=" + cpu.getModeEnum());
     }
 }
