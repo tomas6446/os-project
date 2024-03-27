@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.ToLongFunction;
 
@@ -101,7 +102,11 @@ public class CodeInterpreter {
     }
 
     private int handleMove(MemoryManager memoryManager, Cpu cpu, List<String> args, CodeEnum command) {
-        List<String> moveArgs = List.of(args.get(1).toUpperCase().toUpperCase().split(","));
+        String input = removeBlankStrings(args);
+
+        List<String> moveArgs = Arrays.stream(input.toUpperCase().split(","))
+                .map(String::trim)
+                .toList();
 
         int counter = handleDefault(memoryManager, command.getCode(), cpu);
         cpu.setCs(counter);
@@ -112,5 +117,17 @@ public class CodeInterpreter {
 
         handleOther(memoryManager, value1, cpu, value2);
         return cpu.getCs();
+    }
+
+    private String removeBlankStrings(List<String> args) {
+        StringBuilder inputBuilder = new StringBuilder();
+        for (int i = 1; i < args.size(); i++) { // Start from index 1 as index 0 is "MOVE"
+            String arg = args.get(i);
+            if (!arg.trim().isEmpty()) { // Skip empty strings
+                inputBuilder.append(arg);
+            }
+        }
+        String input = inputBuilder.toString();
+        return input;
     }
 }

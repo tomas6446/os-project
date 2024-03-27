@@ -68,12 +68,22 @@ public class ComputerInterface {
                     case "super" -> {
                         out.println("Mode set to SUPERVISOR");
                         realMachine.getCpu().setModeEnum(ModeEnum.SUPERVISOR);
-                        handleSuper(realMachine);
+                        handleSuper(realMachine, true);
+
+                        out.println("MOVE super mode to user mode");
+                        realMachine.getCpu().setModeEnum(ModeEnum.USER);
                     }
                     case "super_run" -> {
                         out.println("Running in SUPERVISOR mode.");
                         realMachine.getCpu().setModeEnum(ModeEnum.SUPERVISOR);
-                        realMachine.runSuper();
+                        handleSuper(realMachine, false);
+
+                        out.print("TI: ");
+                        int cycles = Integer.parseInt(scanner.nextLine());
+                        realMachine.runSuper(cycles);
+
+                        out.println("MOVE super mode to user mode");
+                        realMachine.getCpu().setModeEnum(ModeEnum.USER);
                     }
                     case "stop" -> realMachine.virtualMachineInterrupt();
                     case "memory" -> showMemoryTable(realMachine);
@@ -89,18 +99,21 @@ public class ComputerInterface {
         }
     }
 
-    private void handleSuper(RealMachine realMachine) {
+    private void handleSuper(RealMachine realMachine, boolean runByLine) {
         CodeInterpreter codeInterpreter = new CodeInterpreter();
         Stream.iterate(scanner.nextLine(), command -> !"exit".equalsIgnoreCase(command), command -> scanner.nextLine())
                 .filter(command -> !command.isEmpty())
                 .forEachOrdered(command -> {
                     if (handleRegisterSet(realMachine, command) == 0) {
                         codeInterpreter.loadCommand(realMachine.getMemoryManager(), command, realMachine.getCpu());
-                        realMachine.continueRun(realMachine.getCpu().getPtr());
+                        if (runByLine) {
+                            realMachine.runSuper(1);
+                        }
                     }
                 });
-        out.println("MOVE super mode to user mode");
-        realMachine.getCpu().setModeEnum(ModeEnum.USER);
+        if (!runByLine) {
+            realMachine.runSuper(1);
+        }
     }
 
     private void displayMenu() {
@@ -119,11 +132,6 @@ public class ComputerInterface {
     }
 
     private void handleRun(RealMachine realMachine, int debug, int vmNumber) {
-        if (vmNumber == -1) {
-            out.println("Running in SUPERVISOR mode.");
-            realMachine.runSuper();
-            return;
-        }
         if (vmNumber < 0 || vmNumber > 15) {
             out.println("Invalid VM number. Please enter a number between 0 and 15.");
             return;

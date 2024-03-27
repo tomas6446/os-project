@@ -86,8 +86,10 @@ public class RealMachine {
         * This method is used to run the program in super mode
         * -1 denotes that the program is running in super mode (RAND INT)
      */
-    public void runSuper() {
-        continueRun(-1);
+    public void runSuper(int cycles) {
+        for (int i = 0; i < cycles; i++) {
+            continueRun(-1);
+        }
     }
 
     private void handleCommand(long val) {
