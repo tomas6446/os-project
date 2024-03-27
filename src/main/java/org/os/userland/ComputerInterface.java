@@ -70,6 +70,10 @@ public class ComputerInterface {
                         realMachine.getCpu().setModeEnum(ModeEnum.SUPERVISOR);
                         handleSuper(realMachine);
                     }
+                    case "runsuper" -> {
+                        realMachine.getCpu().setModeEnum(ModeEnum.SUPERVISOR);
+                        handleRun(realMachine, debug, -1);
+                    }
                     case "stop" -> realMachine.virtualMachineInterrupt();
                     case "memory" -> showMemoryTable(realMachine);
                     case "cls" -> clearConsole();
@@ -119,6 +123,7 @@ public class ComputerInterface {
                 "run - Run a virtual machine%n" +
                 "stop - Stop a virtual machine%n" +
                 "super - Enter super mode%n" +
+                "runsuper - Run a program in super mode%n" +
                 "debug - Toggle debug mode%n" +
                 "memory - Display memory tables%n" +
                 "cls - Clear the console%n" +
@@ -127,6 +132,11 @@ public class ComputerInterface {
     }
 
     private void handleRun(RealMachine realMachine, int debug, int vmNumber) {
+        if (vmNumber == -1) {
+            out.println("Running in SUPERVISOR mode.");
+            realMachine.runSuper();
+            return;
+        }
         if (vmNumber < 0 || vmNumber > 15) {
             out.println("Invalid VM number. Please enter a number between 0 and 15.");
             return;

@@ -82,6 +82,10 @@ public class RealMachine {
         virtualMachineInterrupt();
     }
 
+    public void runSuper() {
+        // TODO: RUN SUPERVISOR
+    }
+
     private void handleCommand(long val) {
         CodeEnum command = CodeEnum.byCode(val);
         int atm = switch (command) {
