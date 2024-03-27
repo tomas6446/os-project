@@ -174,12 +174,8 @@ public class ComputerInterface {
         realMachine.preRun(vmNumber);
 
         while (!"exit".equalsIgnoreCase(input)) {
-            long command = realMachine.continueRun(vmNumber);
-
-            out.println("Command: " + CodeEnum.byCode(command) + "\n" + realMachine.getCpu().toString());
-
+            realMachine.continueRun(vmNumber);
             input = scanner.nextLine();
-
             handleRegisterSet(realMachine, input);
         }
     }

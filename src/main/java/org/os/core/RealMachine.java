@@ -69,13 +69,10 @@ public class RealMachine {
         System.out.println("Program interrupted");
     }
 
-    public long continueRun(int ptr) {
+    public void continueRun(int ptr) {
         long command = memoryManager.read(cpu.getAtm(), ptr);
-
         out.println("Command: " + CodeEnum.byCode(command) + "\n" + cpu);
-
         handleCommand(command);
-        return command;
     }
 
     public void run(int ptr, int cycleTimes) {
