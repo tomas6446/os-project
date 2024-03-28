@@ -17,6 +17,7 @@ This project is implementation of Virtual Machine (VM) in Java. It demonstrates 
 ## Memory Management and Paging Mechanism
 
 ### Memory Layout
+The below table's rows represent the pages in memory, and the columns represent the memory cells within each page. Each page contains 16 memory cells.
 
 | Pages | 00  | 01  | 02  | 03  | 04  | 05  | 06  | 07  | 08  | 09  | 10  | 11  | 12  | 13  | 14  | 15  |
 |-------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
@@ -27,8 +28,6 @@ This project is implementation of Virtual Machine (VM) in Java. It demonstrates 
 | 16    |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
 | ...   | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... |
 | 272   |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
-\
-The rows represent the pages in memory, and the columns represent the memory cells within each page. Each page contains 16 memory cells.
 
 ### Memory Allocation
 - The first 256 memory cells are reserved for page table entries (From 0 to 255).
