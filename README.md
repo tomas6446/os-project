@@ -27,6 +27,7 @@ This project is implementation of Virtual Machine (VM) in Java. It demonstrates 
 | 16    |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
 | ...   | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... |
 | 272   |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+\
 The rows represent the pages in memory, and the columns represent the memory cells within each page. Each page contains 16 memory cells.
 
 ### Memory Allocation
