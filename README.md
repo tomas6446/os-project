@@ -51,7 +51,7 @@ The process of converting a virtual address to a real address:
 
 ## Program syntax
 [The following program demonstrates the VM's capabilities by performing a simple addition operation](program_example.txt)
-```assembly
+```bash
 DATA_SEGMENT
 VAL 12 
 VAL 3 
