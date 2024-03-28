@@ -95,8 +95,8 @@ public class RealMachine {
             if (CodeEnum.byCode(command) == CodeEnum.EMPTY) {
                 out.println("[EMPTY]");
             } else {
-                out.println("Command: " + CodeEnum.byCode(command) + "\n" + cpu);
                 handleCommand(command);
+                out.println("Command: " + CodeEnum.byCode(command) + "\n" + cpu);
             }
 
         } catch (VMOutOfMemoryException | ArrayIndexOutOfBoundsException e) {
