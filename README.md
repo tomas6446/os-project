@@ -44,7 +44,7 @@ The process of converting a virtual address to a real address:
 
 2. **Real Address Calculation**:
    The real address is calculated using the formula: \
-   Real Address = (Page Number \times 16) + (Address \mod 16),\
+   Real Address = (Page Number × 16) + (Address mod 16),\
    where:
 - `Page Number` is obtained from the page table using the previously calculated index.
 - `Address mod 16` indicates the byte number within the page.
