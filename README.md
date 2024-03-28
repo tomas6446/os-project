@@ -49,6 +49,19 @@ The process of converting a virtual address to a real address:
 - `Page Number` is obtained from the page table using the previously calculated index.
 - `Address mod 16` indicates the byte number within the page.
 
+## Program syntax
+[The following program demonstrates the VM's capabilities by performing a simple addition operation](program_example.txt)
+```assembly
+DATA_SEGMENT
+VAL 12 
+VAL 3 
+CODE_SEGMENT
+MOVE AR,2
+MOVE BR,3
+ADD
+JM 10
+```
+
 ## Running the Project
 ```bash
 git clone https://github.com/tomas6446/os-project.git
