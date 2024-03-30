@@ -30,9 +30,9 @@ The below table's rows represent the pages in memory, and the columns represent 
 | 272   |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
 
 ### Memory Allocation
-- The first 256 memory cells are reserved for page table entries (From 0 to 255).
-- Virtual machines use cells from 256 to 272 for their operations (From 256 to 272).
-- Real memory is allocated from cell 273 to 4368, providing ample space for virtual machine execution and data storage (From 273 to 4368).
+- The first 16 pages are reserved for page table entries (From cell 0 to 255).
+- Virtual machines use 17th page to indicate that it is currently working (From cell 256 to 272).
+- Real memory is from 18 to 272 page, providing ample space for virtual machine execution and data storage (From cell 273 to 4368).
 
 ### Address Translation Process
 The process of converting a virtual address to a real address:
