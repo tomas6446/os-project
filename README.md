@@ -3,17 +3,6 @@
 ## Overview
 This project is implementation of Virtual Machine (VM) in Java. It demonstrates the core concepts of how a VM operates, including the execution of instructions, handling of registers, memory management, and interaction with external devices.
 
-## Features
-- **Sample Program Execution**: Includes at least one sample program to demonstrate the VM's capabilities during the presentation.
-- **Execution Modes**: Supports executing the program in either a step-by-step (debug) mode or running it directly.
-- **User Interface**: Showcases command execution, the state changes of all VM components during step-by-step execution, including:
-    - Register values
-    - The next command to execute
-    - External device states
-    - VM page values of the executing command
-- **Memory Visualization**: Allows displaying the VM's memory and the Real Machine's (RM) memory or a specified RM memory page.
-- **Non-Sequential Page Allocation**: Implements non-sequential page allocation for the VM.
-
 ## Memory Management and Paging Mechanism
 
 ### Memory Layout
@@ -50,7 +39,7 @@ The process of converting a virtual address to a real address:
 - `Address mod 16` indicates the byte number within the page.
 
 ## Program syntax
-[The following program demonstrates the VM's capabilities by performing a simple addition operation](program_example.txt)
+[Program example](program_example.txt)
 ```bash
 DATA_SEGMENT
 VAL 12 
