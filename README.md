@@ -1,7 +1,7 @@
-# Virtual Machine Project
+# Os project
 
 ## Overview
-This project is implementation of Virtual Machine (VM) in Java. It demonstrates the core concepts of how a VM operates, including the execution of instructions, handling of registers, memory management, and interaction with external devices.
+This project is implementation of Virtual Machine (VM) in Java.
 
 ## Memory Management and Paging Mechanism
 
