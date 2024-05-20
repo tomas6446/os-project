@@ -30,7 +30,8 @@ public class CodeInterpreter {
                     counter = switch (command) {
                         case DATA_SEGMENT -> handleSegment(memoryManager, cpu, reader);
                         case CodeEnum.MOVE -> handleMove(memoryManager, cpu, args, command);
-                        case CodeEnum.JM, CodeEnum.JG, CodeEnum.JL, CodeEnum.JLR, CodeEnum.JGR, CodeEnum.LD, CodeEnum.ST ->
+                        case CodeEnum.JM, CodeEnum.JG, CodeEnum.JL, CodeEnum.JLR, CodeEnum.JGR, CodeEnum.LD,
+                             CodeEnum.ST ->
                                 handleOther(memoryManager, command.getCode(), cpu, Long.parseLong(args.get(1)));
                         default -> handleDefault(memoryManager, command.getCode(), cpu);
                     };

@@ -11,14 +11,14 @@ import java.util.stream.Stream;
 
 import static java.lang.System.out;
 
-public class ComputerInterface {
+public class InteractiveInterface {
     public static final int REAL_MEMORY_SIZE = 4624;
     public static final int VM_ADDRESS = 256; // 16 pages, 16 words per page
     private static final int CYCLES = 10;
-    private static final Logger LOG = Logger.getLogger(ComputerInterface.class.getName());
+    private static final Logger LOG = Logger.getLogger(InteractiveInterface.class.getName());
     private final Scanner scanner = new Scanner(System.in);
 
-    public ComputerInterface() {
+    public InteractiveInterface() {
         out.println("=== Computer started ===");
         initializeComponents();
     }

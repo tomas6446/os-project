@@ -6,7 +6,7 @@ import lombok.Getter;
 import java.io.File;
 
 import static java.lang.System.out;
-import static org.os.userland.ComputerInterface.VM_ADDRESS;
+import static org.os.userland.InteractiveInterface.VM_ADDRESS;
 
 @Getter
 public class RealMachine {
@@ -41,14 +41,13 @@ public class RealMachine {
             cpu.setExc(0);
 
             cpu.setModeEnum(ModeEnum.SUPERVISOR);
-        } catch (VMOutOfMemoryException | ArrayIndexOutOfBoundsException e) {
-            cpu.setExc(4);
-            handleException();
-        } catch (OutOfMemoryError | ArithmeticException e) {
-            cpu.setExc(2);
-            handleException();
+        } catch (ArrayIndexOutOfBoundsException e) {
+            cpu.setExc(ExceptionEnum.OUT_OF_BOUNDS.getValue());
+        } catch (VMOutOfMemoryException | OutOfMemoryError e) {
+            cpu.setExc(ExceptionEnum.MEMORY_ERROR.getValue());
         } catch (RuntimeException e) {
-            cpu.setExc(1);
+            cpu.setExc(ExceptionEnum.RUNTIME_EXCEPTION.getValue());
+        } finally {
             handleException();
         }
     }
@@ -98,15 +97,14 @@ public class RealMachine {
                 handleCommand(command);
                 out.println("Command: " + CodeEnum.byCode(command) + "\n" + cpu);
             }
-
-        } catch (VMOutOfMemoryException | ArrayIndexOutOfBoundsException e) {
-            cpu.setExc(4);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            cpu.setExc(ExceptionEnum.OUT_OF_BOUNDS.getValue());
             handleException();
-        } catch (OutOfMemoryError | ArithmeticException e) {
-            cpu.setExc(2);
+        } catch (VMOutOfMemoryException | OutOfMemoryError e) {
+            cpu.setExc(ExceptionEnum.MEMORY_ERROR.getValue());
             handleException();
         } catch (RuntimeException e) {
-            cpu.setExc(1);
+            cpu.setExc(ExceptionEnum.RUNTIME_EXCEPTION.getValue());
             handleException();
         }
     }
@@ -129,7 +127,7 @@ public class RealMachine {
         }
     }
 
-    public void handleCommand(long val) throws ArrayIndexOutOfBoundsException, VMOutOfMemoryException {
+    public void handleCommand(long val) throws ArrayIndexOutOfBoundsException, VMOutOfMemoryException, ArithmeticException {
         CodeEnum command = CodeEnum.byCode(val);
 
         int atm = switch (command) {
@@ -180,36 +178,37 @@ public class RealMachine {
                 cpu.setAr((int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr()));
                 yield 2;
             case ST:
-                switch (cpu.getMode()) {
-                    case 1 -> memoryManager.write(cpu.getAtm() + 1, cpu.getAr(), cpu.getPtr());
-                    case 0 -> memoryManager.getMemory().write(cpu.getAtm() + 1, cpu.getAr());
+                if (cpu.getMode() == 1) {
+                    memoryManager.write(cpu.getAtm() + 1, cpu.getAr(), cpu.getPtr());
+                } else if (cpu.getMode() == 0) {
+                    memoryManager.getMemory().write(cpu.getAtm() + 1, cpu.getAr());
                 }
                 yield 2;
             case MOVE:
                 yield handleMoveCommand();
             case HALT:
-                cpu.setExc(0);
+                cpu.setExc(ExceptionEnum.HALT.getValue());
                 yield 0;
             case DEL:
-                cpu.setExc(1);
+                cpu.setExc(ExceptionEnum.DEL.getValue());
                 yield 0;
             case DIV_ZERO:
-                cpu.setExc(2);
+                cpu.setExc(ExceptionEnum.DIVISION_BY_ZERO.getValue());
                 yield 0;
             case OVERFLOW:
-                cpu.setExc(3);
+                cpu.setExc(ExceptionEnum.OVERFLOW.getValue());
                 yield 0;
             case OUT_OF_MEMORY:
-                cpu.setExc(4);
+                cpu.setExc(ExceptionEnum.OUT_OF_MEMORY.getValue());
                 yield 0;
             case PRINT:
+                cpu.setExc(ExceptionEnum.OUTPUT.getValue());
                 out.println(cpu.getAr());
                 yield 1;
             default:
                 yield 1;
         };
         cpu.setAtm(cpu.getAtm() + atm);
-
     }
 
     private int handleJmpCommand(int flag) {
@@ -231,9 +230,8 @@ public class RealMachine {
             return handleRegisterToValueMove(arg1, reg2);
         } else if (isReg1 && !isReg2) {
             return handleValueToRegisterMove(reg1, arg2);
-        } else {
-            return handleRegisterToRegisterMove(reg1, reg2);
         }
+        return handleRegisterToRegisterMove(reg1, reg2);
     }
 
     private int handleRegisterToValueMove(long arg1, CodeEnum reg2) throws ArrayIndexOutOfBoundsException, VMOutOfMemoryException {
@@ -291,20 +289,14 @@ public class RealMachine {
         }
     }
 
-    public void handleException() throws ArrayIndexOutOfBoundsException, VMOutOfMemoryException {
-        if (cpu.getExc() == 0) {
-            out.println("Exception detected: program halted");
-        } else if (cpu.getExc() == 1) {
+    public void handleException() {
+        int exception = cpu.getExc();
+        ExceptionEnum exceptionEnum = ExceptionEnum.byValue(exception);
+        if (exceptionEnum == ExceptionEnum.RUNTIME_EXCEPTION) {
             out.println("Exception detected: program deleted");
             clear(cpu.getPtr());
-        } else if (cpu.getExc() == 2) {
-            out.println("Exception detected: division by zero");
-            exception();
-        } else if (cpu.getExc() == 3) {
-            out.println("Exception detected: overflow");
-            exception();
-        } else if (cpu.getExc() == 4) {
-            out.println("Exception detected: memory error");
+        } else {
+            out.println("Exception detected: " + exceptionEnum.getName());
             exception();
         }
     }
@@ -331,7 +323,6 @@ public class RealMachine {
         cpu.setPtr(ptr);
         paginationTable.allocate(ptr);
         memoryManager.write(VM_ADDRESS + ptr, 1, ptr);
-
     }
 
     public boolean vmExists(int index) {
