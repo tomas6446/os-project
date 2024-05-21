@@ -18,11 +18,13 @@ public class Vm {
         if (realMachine.getCpu().getExc() == ExceptionEnum.INPUT.getValue()) {
             realMachine.getCpu().setModeEnum(ModeEnum.SUPERVISOR);
             if (packet == Packet.INPUT) {
-                return interact(packet, vmId);
+                return packet;
             }
-        } else if (realMachine.getCpu().getExc() == 6) {
+        } else if (realMachine.getCpu().getExc() == ExceptionEnum.OUTPUT.getValue()) {
             realMachine.getCpu().setModeEnum(ModeEnum.SUPERVISOR);
             return Packet.OUTPUT;
         }
+        realMachine.getCpu().setModeEnum(ModeEnum.USER);
+        return packet;
     }
 }

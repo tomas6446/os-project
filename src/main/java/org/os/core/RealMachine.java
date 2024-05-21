@@ -43,11 +43,12 @@ public class RealMachine {
             cpu.setModeEnum(ModeEnum.SUPERVISOR);
         } catch (ArrayIndexOutOfBoundsException e) {
             cpu.setExc(ExceptionEnum.OUT_OF_BOUNDS.getValue());
+            handleException();
         } catch (VMOutOfMemoryException | OutOfMemoryError e) {
             cpu.setExc(ExceptionEnum.MEMORY_ERROR.getValue());
+            handleException();
         } catch (RuntimeException e) {
             cpu.setExc(ExceptionEnum.RUNTIME_EXCEPTION.getValue());
-        } finally {
             handleException();
         }
     }

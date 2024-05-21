@@ -14,7 +14,7 @@ public class Jcl {
     }
 
     public Packet interact(Packet packet) {
-        IntStream.range(0, 16)
+        IntStream.range(0, 15)
                 .filter(realMachine::vmExists)
                 .forEach(i -> vm.interact(packet, i));
         return packet;

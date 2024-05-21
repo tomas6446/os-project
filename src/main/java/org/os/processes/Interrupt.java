@@ -1,5 +1,6 @@
 package org.os.processes;
 
+import org.os.core.ExceptionEnum;
 import org.os.core.RealMachine;
 
 public class Interrupt {
@@ -11,11 +12,11 @@ public class Interrupt {
 
     public Packet interact(Packet packet) {
         int exception = realMachine.getCpu().getExc();
-        if (exception == 0) {
-            return Packet.ALL_DONE;
+        if (exception == ExceptionEnum.NO_EXCEPTION.getValue()) {
+            return packet;
         }
 
         realMachine.handleException();
-        return packet;
+        return Packet.ALL_DONE;
     }
 }

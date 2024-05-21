@@ -3,31 +3,27 @@ package org.os.processes;
 import org.os.core.RealMachine;
 
 public class StartStop {
-    private final RealMachine realMachine;
-    private final JobGovernor jobGovernor
     private final GetPutData getPutData;
     private final EnvironmentInteraction environmentInteraction;
     private final Interrupt interrupt;
     private final MainProcess mainProcess;
     private final Jcl jcl;
-    private Vm vm;
+    private final Vm vm;
 
     public StartStop(RealMachine realMachine) {
-        this.realMachine = realMachine;
-
         vm = new Vm(realMachine);
-        getPutData = new GetPutData();
+        getPutData = new GetPutData(realMachine);
+        JobGovernor jobGovernor = new JobGovernor(getPutData);
         interrupt = new Interrupt(realMachine);
-        environmentInteraction = new EnvironmentInteraction(getPutData);
-        jobGovernor = new JobGovernor(getPutData);
-        mainProcess = new MainProcess(realMachine, jobGovernor);
+        environmentInteraction = new EnvironmentInteraction();
+        mainProcess = new MainProcess(jobGovernor);
         jcl = new Jcl(realMachine, vm);
 
         process();
     }
 
     private void process() {
-        Packet packet = null; // change this to a more meaningful value
+        Packet packet = Packet.ALL_DONE;
 
         while (true) {
             packet = environmentInteraction.interact(packet);

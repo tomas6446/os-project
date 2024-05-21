@@ -1,14 +1,12 @@
 package org.os.processes;
 
-import org.os.core.RealMachine;
-
 import java.util.Scanner;
 
 public class MainProcess {
     private final JobGovernor jobGovernor;
     private final Scanner scanner;
 
-    public MainProcess(RealMachine realMachine, JobGovernor jobGovernor) {
+    public MainProcess(JobGovernor jobGovernor) {
         scanner = new Scanner(System.in);
         this.jobGovernor = jobGovernor;
     }
@@ -20,14 +18,9 @@ public class MainProcess {
             return packet;
         }
 
-        System.out.println("1. Continue with existing program");
-        System.out.println("2. Exit");
-
-        int choice = scanner.nextInt();
-        return switch (choice) {
-            case 1 -> jobGovernor.interact(packet);
-            case 2 -> Packet.WORK_END;
-            default -> packet;
-        };
+        if (packet == Packet.WORK_END_U_OFF) {
+            return Packet.WORK_END;
+        }
+        return jobGovernor.interact(packet);
     }
 }

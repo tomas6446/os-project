@@ -10,7 +10,6 @@ public class JobGovernor {
     public Packet interact(Packet packet) {
         /* Procesas blokuojamas, kol patikrinama prieiga prie atminties */
         /* Procesas blokuojamas, kol atsilaisvins atmintis */
-
         packet = getPutData.interact(packet);
         if (packet != Packet.RUN_COMPLETE) {
             return packet;
