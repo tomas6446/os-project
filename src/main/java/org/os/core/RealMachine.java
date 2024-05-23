@@ -175,16 +175,6 @@ public class RealMachine {
                 yield cpu.getAr() > cpu.getBr() ? handleJmpCommand(1) : 2;
             case JGR:
                 yield cpu.getAr() < cpu.getBr() ? handleJmpCommand(1) : 2;
-            case LD:
-                cpu.setAr((int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr()));
-                yield 2;
-            case ST:
-                if (cpu.getMode() == 1) {
-                    memoryManager.write(cpu.getAtm() + 1, cpu.getAr(), cpu.getPtr());
-                } else if (cpu.getMode() == 0) {
-                    memoryManager.getMemory().write(cpu.getAtm() + 1, cpu.getAr());
-                }
-                yield 2;
             case MOVE:
                 yield handleMoveCommand();
             case HALT:
@@ -206,6 +196,16 @@ public class RealMachine {
                 cpu.setExc(ExceptionEnum.OUTPUT.getValue());
                 out.println(cpu.getAr());
                 yield 1;
+            case LD:
+                cpu.setAr((int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr()));
+                yield 2;
+            case ST:
+                if (cpu.getMode() == 1) {
+                    memoryManager.write(cpu.getAtm() + 1, cpu.getAr(), cpu.getPtr());
+                } else if (cpu.getMode() == 0) {
+                    memoryManager.getMemory().write(cpu.getAtm() + 1, cpu.getAr());
+                }
+                yield 2;
             default:
                 yield 1;
         };
@@ -293,13 +293,16 @@ public class RealMachine {
     public void handleException() {
         int exception = cpu.getExc();
         ExceptionEnum exceptionEnum = ExceptionEnum.byValue(exception);
+        if (exceptionEnum == ExceptionEnum.NO_EXCEPTION) {
+            return;
+        }
         if (exceptionEnum == ExceptionEnum.RUNTIME_EXCEPTION) {
             out.println("Exception detected: program deleted");
             clear(cpu.getPtr());
-        } else {
-            out.println("Exception detected: " + exceptionEnum.getName());
-            exception();
+            return;
         }
+        out.println("Exception detected: " + exceptionEnum.getName());
+        exception();
     }
 
     private void exception() throws ArrayIndexOutOfBoundsException, VMOutOfMemoryException {

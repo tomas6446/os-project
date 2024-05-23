@@ -3,44 +3,42 @@ package org.os.processes;
 import org.os.core.RealMachine;
 
 public class StartStop {
-    private final GetPutData getPutData;
-    private final EnvironmentInteraction environmentInteraction;
-    private final Interrupt interrupt;
-    private final MainProcess mainProcess;
-    private final Jcl jcl;
-    private final Vm vm;
+    private final ResourceManager resourceManager;
 
     public StartStop(RealMachine realMachine) {
-        vm = new Vm(realMachine);
-        getPutData = new GetPutData(realMachine);
-        JobGovernor jobGovernor = new JobGovernor(getPutData);
-        interrupt = new Interrupt(realMachine);
-        environmentInteraction = new EnvironmentInteraction();
-        mainProcess = new MainProcess(jobGovernor);
-        jcl = new Jcl(realMachine, vm);
-
+        resourceManager = new ResourceManager(realMachine);
+        printPacketHeader();
+        initializeProcesses();
         process();
     }
 
+    private static void line() {
+        System.out.format("+-------------------------------------+" +
+                "-------------------------------------+" +
+                "-------------------------------------+%n");
+    }
+
+    private void initializeProcesses() {
+        resourceManager.addProcess(ProcessEnum.JOB_GOVERNOR);
+        resourceManager.addProcess(ProcessEnum.ENVIRONMENT_INTERACTION);
+        resourceManager.addProcess(ProcessEnum.INTERRUPT);
+        resourceManager.addProcess(ProcessEnum.MAIN_PROC);
+        resourceManager.addProcess(ProcessEnum.JCL);
+    }
+
     private void process() {
-        Packet packet = Packet.ALL_DONE;
-
         while (true) {
-            packet = environmentInteraction.interact(packet);
-            packet = interrupt.interact(packet);
-
-            /* Irenginio veikimo patikrinimas,
-             * Reikiamu duomenu ikelimas i registra,
-             * Reikiamu duomenu ikelimas i atminti */
-
-            packet = mainProcess.interact(packet);
-            packet = jcl.interact(packet);
-
-            if (packet == Packet.WORK_END) {
-                break;
+            for (ProcessNode node : resourceManager.getProcesses().values()) {
+                if (!node.getPackets().isEmpty()) {
+                    node.processPacket(resourceManager);
+                }
             }
         }
-        /* Reikiamu duomenu uzsaugojimas,
-         * Proceso pabaiga */
+    }
+
+    private void printPacketHeader() {
+        line();
+        System.out.format("| %-35s | %-35s | %-35s |%n", "TO", "TYPE", "DATA");
+        line();
     }
 }
