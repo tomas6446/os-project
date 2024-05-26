@@ -1,7 +1,8 @@
 package org.os.userland;
 
 import org.os.core.*;
-import org.os.processes.StartStop;
+import org.os.proc.Planner;
+import org.os.proc.ResourceManager;
 
 import static java.lang.System.out;
 import static org.os.userland.InteractiveInterface.REAL_MEMORY_SIZE;
@@ -19,6 +20,7 @@ public class Os {
         MemoryManager memoryManager = new MemoryManager(cpu, realMemory, paginationTable);
         RealMachine realMachine = new RealMachine(realMemory, cpu, memoryManager, paginationTable);
 
-        new StartStop(realMachine);
+        ResourceManager resourceManager = new ResourceManager();
+        new Planner(realMachine, resourceManager).plan();
     }
 }

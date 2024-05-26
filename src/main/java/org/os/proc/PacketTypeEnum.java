@@ -1,4 +1,4 @@
-package org.os.processes;
+package org.os.proc;
 
 public enum PacketTypeEnum {
     WORK_END,
@@ -6,7 +6,7 @@ public enum PacketTypeEnum {
     STOP,
     CONTINUE_WORK,
     END_OF_PROCESS,
-    START_NEW_PROCESS,
+    RUNNING,
     OUTPUT,
     INPUT,
     INPUT_I,
@@ -14,5 +14,5 @@ public enum PacketTypeEnum {
     NEW_VM_TO_LIST,
     ERROR,
     ALL_DONE,
-    RUN_COMPLETE
+    START_VM, RUN_COMPLETE
 }

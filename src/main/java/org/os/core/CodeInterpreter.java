@@ -38,7 +38,7 @@ public class CodeInterpreter {
                     cpu.setCs(counter);
                 }
             }
-            out.println("Program loaded. Use 'run' command to start the program");
+            out.println("Program loaded.");
         } catch (IOException e) {
             out.println("Error while reading file: " + e.getMessage());
         }

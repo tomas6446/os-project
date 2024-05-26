@@ -25,13 +25,16 @@ public class RealMachine {
     public void load(String programName) {
         try {
             out.println("Loading the program " + programName);
+            CodeInterpreter codeInterpreter = new CodeInterpreter();
+            File file = new File(programName);
+            if (!file.exists()) {
+                out.println("File not found");
+                return;
+            }
 
             cpu.setModeEnum(ModeEnum.SUPERVISOR);
             createVM();
             cpu.setModeEnum(ModeEnum.USER);
-
-            CodeInterpreter codeInterpreter = new CodeInterpreter();
-            File file = new File(programName);
 
             cpu.setAtm(0);
             cpu.setCs(0);
@@ -298,6 +301,10 @@ public class RealMachine {
         }
         if (exceptionEnum == ExceptionEnum.RUNTIME_EXCEPTION) {
             out.println("Exception detected: program deleted");
+            clear(cpu.getPtr());
+            return;
+        } else if (exceptionEnum == ExceptionEnum.HALT) {
+            out.println("Program halted");
             clear(cpu.getPtr());
             return;
         }
