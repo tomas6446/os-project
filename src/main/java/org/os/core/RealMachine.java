@@ -4,6 +4,8 @@ import com.sun.jdi.VMOutOfMemoryException;
 import lombok.Getter;
 
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static java.lang.System.out;
 import static org.os.userland.InteractiveInterface.VM_ADDRESS;
@@ -22,18 +24,18 @@ public class RealMachine {
         this.paginationTable = paginationTable;
     }
 
-    public void load(String programName) {
+    public int load(String programName) {
         try {
             out.println("Loading the program " + programName);
             CodeInterpreter codeInterpreter = new CodeInterpreter();
             File file = new File(programName);
             if (!file.exists()) {
                 out.println("File not found");
-                return;
+                return -1;
             }
 
             cpu.setModeEnum(ModeEnum.SUPERVISOR);
-            createVM();
+            int vmId = createVM();
             cpu.setModeEnum(ModeEnum.USER);
 
             cpu.setAtm(0);
@@ -44,6 +46,7 @@ public class RealMachine {
             cpu.setExc(0);
 
             cpu.setModeEnum(ModeEnum.SUPERVISOR);
+            return vmId;
         } catch (ArrayIndexOutOfBoundsException e) {
             cpu.setExc(ExceptionEnum.OUT_OF_BOUNDS.getValue());
             handleException();
@@ -54,6 +57,7 @@ public class RealMachine {
             cpu.setExc(ExceptionEnum.RUNTIME_EXCEPTION.getValue());
             handleException();
         }
+        return -1;
     }
 
 
@@ -64,8 +68,6 @@ public class RealMachine {
 
     public void preRun(int ptr) throws ArrayIndexOutOfBoundsException, VMOutOfMemoryException {
         cpu.setModeEnum(ModeEnum.USER);
-        out.println("Prerunning the program at index " + ptr);
-
         cpu.setAr((int) memoryManager.getMemory().readLower(ptr * 16));
         cpu.setBr((int) memoryManager.getMemory().readLower(ptr * 16 + 1));
         cpu.setAtm((int) memoryManager.getMemory().readLower(ptr * 16 + 2));
@@ -76,8 +78,6 @@ public class RealMachine {
     }
 
     public void virtualMachineInterrupt() throws ArrayIndexOutOfBoundsException, VMOutOfMemoryException {
-        out.println("Interrupting the current program");
-
         int address = cpu.getPtr() * 16;
 
         memoryManager.getMemory().writeLower(address, cpu.getAr());
@@ -89,17 +89,17 @@ public class RealMachine {
         handleException();
         cpu.setModeEnum(ModeEnum.SUPERVISOR);
         cpu.setTi(0);
-        out.println("Program interrupted");
     }
 
-    public void continueRun(int ptr) {
+    public String continueRun(int ptr) {
         try {
             long command = memoryManager.read(cpu.getAtm(), ptr);
             if (CodeEnum.byCode(command) == CodeEnum.EMPTY) {
-                out.println("[EMPTY]");
+                return "[EMPTY]";
             } else {
                 handleCommand(command);
-                out.println("Command: " + CodeEnum.byCode(command) + "\n" + cpu);
+                String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
+                return "Command: " + CodeEnum.byCode(command) + "\n" + cpu + "\nTime: " + currentTime;
             }
         } catch (ArrayIndexOutOfBoundsException e) {
             cpu.setExc(ExceptionEnum.OUT_OF_BOUNDS.getValue());
@@ -111,6 +111,7 @@ public class RealMachine {
             cpu.setExc(ExceptionEnum.RUNTIME_EXCEPTION.getValue());
             handleException();
         }
+        return "";
     }
 
     public void run(int ptr, int cycleTimes) throws ArrayIndexOutOfBoundsException, VMOutOfMemoryException {
@@ -300,16 +301,18 @@ public class RealMachine {
             return;
         }
         if (exceptionEnum == ExceptionEnum.RUNTIME_EXCEPTION) {
-            out.println("Exception detected: program deleted");
+            out.println("Exception detected: program deleted at index " + cpu.getPtr());
             clear(cpu.getPtr());
+            cpu.setExc(ExceptionEnum.NO_EXCEPTION.getValue());
             return;
         } else if (exceptionEnum == ExceptionEnum.HALT) {
-            out.println("Program halted");
+            out.println("Program halted at index " + cpu.getPtr());
             clear(cpu.getPtr());
+            cpu.setExc(ExceptionEnum.NO_EXCEPTION.getValue());
             return;
         }
-        out.println("Exception detected: " + exceptionEnum.getName());
-        exception();
+        out.println("Exception detected: " + exceptionEnum.getName() + " at index " + cpu.getPtr());
+        // exception();
     }
 
     private void exception() throws ArrayIndexOutOfBoundsException, VMOutOfMemoryException {
@@ -325,7 +328,7 @@ public class RealMachine {
         cpu.setCs(cs);
     }
 
-    private void createVM() throws ArrayIndexOutOfBoundsException, VMOutOfMemoryException {
+    private int createVM() throws ArrayIndexOutOfBoundsException, VMOutOfMemoryException {
         int ptr = 0;
 
         while (memoryManager.read(VM_ADDRESS + ptr, ptr) == 1) {
@@ -334,6 +337,7 @@ public class RealMachine {
         cpu.setPtr(ptr);
         paginationTable.allocate(ptr);
         memoryManager.write(VM_ADDRESS + ptr, 1, ptr);
+        return ptr;
     }
 
     public boolean vmExists(int index) {

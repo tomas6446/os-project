@@ -1,26 +1,24 @@
 package org.os.proc;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ResourceManager {
-    private final Map<ProcessEnum, Stack<Packet>> processes;
+    private final Map<ProcessEnum, Queue<Packet>> processes;
 
     public ResourceManager() {
         processes = Arrays.stream(ProcessEnum.values())
                 .collect(Collectors.toMap(
                         process -> process,
-                        process -> new Stack<>()
+                        process -> new LinkedList<>()
                 ));
     }
 
     public void addPacket(ProcessEnum process, Packet packet) {
-        processes.computeIfAbsent(process, k -> new Stack<>()).push(packet);
+        processes.computeIfAbsent(process, k -> new LinkedList<>()).add(packet);
     }
 
-    public Stack<Packet> getProcessPackets(ProcessEnum process) {
+    public Queue<Packet> getProcessPackets(ProcessEnum process) {
         return processes.get(process);
     }
 
@@ -28,7 +26,7 @@ public class ResourceManager {
         processes.get(processEnum).remove(packet);
     }
 
-    public Map<ProcessEnum, Stack<Packet>>  getProcesses() {
+    public Map<ProcessEnum, Queue<Packet>>  getProcesses() {
         return processes;
     }
 
