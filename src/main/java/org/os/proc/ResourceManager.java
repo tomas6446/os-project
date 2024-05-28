@@ -1,36 +1,41 @@
 package org.os.proc;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 
 public class ResourceManager {
-    private final Map<ProcessEnum, Queue<Packet>> processes;
+    private final Map<ProcessEnum, Deque<Packet>> processPackets = new HashMap<>();
 
     public ResourceManager() {
-        processes = Arrays.stream(ProcessEnum.values())
-                .collect(Collectors.toMap(
-                        process -> process,
-                        process -> new LinkedList<>()
-                ));
+        for (ProcessEnum process : ProcessEnum.values()) {
+            processPackets.put(process, new LinkedList<>());
+        }
     }
 
     public void addPacket(ProcessEnum process, Packet packet) {
-        processes.computeIfAbsent(process, k -> new LinkedList<>()).add(packet);
+        Deque<Packet> queue = processPackets.get(process);
+        if (queue != null) {
+            queue.addLast(packet); // Add to the end of the queue
+        }
     }
 
-    public Queue<Packet> getProcessPackets(ProcessEnum process) {
-        return processes.get(process);
+    public void addPacketToFront(ProcessEnum process, Packet packet) {
+        Deque<Packet> queue = processPackets.get(process);
+        if (queue != null) {
+            queue.addFirst(packet); // Add to the front of the queue
+        }
     }
 
-    public void removePacket(ProcessEnum processEnum, Packet packet) {
-        processes.get(processEnum).remove(packet);
+    public Deque<Packet> getProcessPackets(ProcessEnum process) {
+        return processPackets.get(process);
     }
 
-    public Map<ProcessEnum, Queue<Packet>>  getProcesses() {
-        return processes;
-    }
-
-    public void clearProcess(ProcessEnum processEnum) {
-        processes.get(processEnum).clear();
+    public void removePacket(ProcessEnum process, Packet packet) {
+        Deque<Packet> queue = processPackets.get(process);
+        if (queue != null) {
+            queue.remove(packet);
+        }
     }
 }
