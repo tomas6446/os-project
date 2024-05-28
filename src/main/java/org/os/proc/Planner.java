@@ -23,7 +23,7 @@ public class Planner {
         this.resourceManager = resourceManager;
         this.logger = new Logger();
         this.scanner = new Scanner(System.in);
-        new MemoryVisualiser(realMachine.getRealMemory().getMemory(), realMachine.getCpu());
+        new MemoryVisualiser(realMachine);
 
         resourceManager.addPacket(ProcessEnum.START_STOP, new Packet(PacketTypeEnum.RUNNING));
     }

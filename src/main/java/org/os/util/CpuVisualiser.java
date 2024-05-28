@@ -27,4 +27,21 @@ public class CpuVisualiser {
 
         return data;
     }
+
+    public void updateRegister(String registerName, int value) {
+        switch (registerName) {
+            case "AR" -> cpu.setAr(value);
+            case "BR" -> cpu.setBr(value);
+            case "TF" -> cpu.setTf(value);
+            case "PTR" -> cpu.setPtr(value);
+            case "CS" -> cpu.setCs(value);
+            case "ATM" -> cpu.setAtm(value);
+            case "FLAG" -> cpu.setFlag(value);
+            case "EXC" -> cpu.setExc(value);
+            case "TI" -> cpu.setTi(value);
+            case "PI" -> cpu.setPi(value);
+            case "MODE" -> cpu.setMode(value);
+            default -> throw new IllegalArgumentException("Invalid register name: " + registerName);
+        }
+    }
 }

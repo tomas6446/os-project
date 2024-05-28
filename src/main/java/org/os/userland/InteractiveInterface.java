@@ -34,7 +34,7 @@ public class InteractiveInterface {
         PaginationTable paginationTable = new PaginationTable(realMemory);
         MemoryManager memoryManager = new MemoryManager(cpu, realMemory, paginationTable);
         RealMachine realMachine = new RealMachine(realMemory, cpu, memoryManager, paginationTable, supervisorMemory);
-        new MemoryVisualiser(realMachine.getRealMemory().getMemory(), realMachine.getCpu());
+        new MemoryVisualiser(realMachine);
 
         commandLoop(realMachine);
     }

@@ -1,6 +1,6 @@
 package org.os.util;
 
-import org.os.core.Cpu;
+import org.os.core.RealMachine;
 import org.os.core.Word;
 
 import javax.swing.*;
@@ -10,19 +10,19 @@ import java.awt.*;
 
 public class MemoryVisualiser {
     private static final String[] memoryHeaders = new String[]{"Address", "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15"};
-    private final Word[] memory;
+    private final RealMachine realMachine;
     private JTable table;
-    private DefaultTableModel tableModel;
+    private EditableTableModel tableModel;
     private final CpuVisualiser cpuVisualiser;
 
-    private Font defaultFont = new Font("Serif", Font.PLAIN, 15);
-    private int defaultRowHeight = 30;
+    private final Font defaultFont = new Font("Serif", Font.PLAIN, 15);
+    private final int defaultRowHeight = 30;
 
-    public MemoryVisualiser(Word[] memory, Cpu cpu) {
-        this.memory = memory;
-        this.cpuVisualiser = new CpuVisualiser(cpu);
+    public MemoryVisualiser(RealMachine realMachine) {
+        this.realMachine = realMachine;
+        this.cpuVisualiser = new CpuVisualiser(realMachine.getCpu());
         initializeUI();
-        updateTable(toData(256, memory), memoryHeaders);
+        updateTable(toData(256, realMachine.getRealMemory().getMemory()), memoryHeaders);
     }
 
     private static String[][] toData(int rows, Word[] memory) {
@@ -43,11 +43,11 @@ public class MemoryVisualiser {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1300, 600);
 
-        tableModel = new DefaultTableModel(null, memoryHeaders);
+        tableModel = new EditableTableModel(null, memoryHeaders);
         table = new JTable(tableModel);
         table.setFillsViewportHeight(true);
-        JScrollPane scrollPane = new JScrollPane(table);
 
+        JScrollPane scrollPane = new JScrollPane(table);
         JPanel buttonPanel = new JPanel();
         JButton paginationButton = new JButton("Show Pagination");
         JButton virtualMachinesButton = new JButton("Show Virtual Machines");
@@ -65,7 +65,7 @@ public class MemoryVisualiser {
 
         paginationButton.addActionListener(e -> {
             defaultFont();
-            updateTable(toData(16, memory), memoryHeaders);
+            updateTable(toData(16, realMachine.getRealMemory().getMemory()), memoryHeaders);
         });
         virtualMachinesButton.addActionListener(e -> {
             defaultFont();
@@ -77,7 +77,7 @@ public class MemoryVisualiser {
         });
         fullMemoryButton.addActionListener(e -> {
             defaultFont();
-            updateTable(toData(256, memory), memoryHeaders);
+            updateTable(toData(256, realMachine.getRealMemory().getMemory()), memoryHeaders);
         });
         cpuRegistersButton.addActionListener(e -> {
             updateTable(cpuVisualiser.getRegisterData(), cpuVisualiser.getCpuHeaders());
@@ -114,18 +114,16 @@ public class MemoryVisualiser {
         table.setDefaultRenderer(Object.class, renderer);
     }
 
-    public void setDefaultFont(Font font, int rowHeight) {
-        this.defaultFont = font;
-        this.defaultRowHeight = rowHeight;
-    }
-
     public String[][] showVirtualMachinesData() {
         String[][] data = new String[1][17];
 
         data[0][0] = "016";
         for (int j = 0; j < 16; j++) {
             int address = 16 * 16 + j;
-            data[0][j + 1] = memory[address].getWord().toBinaryString();
+            data[0][j + 1] = realMachine.getRealMemory()
+                    .getMemory()[address]
+                    .getWord()
+                    .toBinaryString();
         }
         return data;
     }
@@ -137,9 +135,43 @@ public class MemoryVisualiser {
             data[i - 17][0] = String.format("%03d", i);
             for (int j = 0; j < 16; j++) {
                 int address = i * 16 + j;
-                data[i - 17][j + 1] = memory[address].getWord().toBinaryString();
+                data[i - 17][j + 1] = realMachine.getRealMemory()
+                        .getMemory()[address]
+                        .getWord()
+                        .toBinaryString();
             }
         }
         return data;
+    }
+
+    private class EditableTableModel extends DefaultTableModel {
+        public EditableTableModel(Object[][] data, Object[] columnNames) {
+            super(data, columnNames);
+        }
+
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return column != 0;
+        }
+
+        @Override
+        public void setValueAt(Object aValue, int row, int column) {
+            Object oldValue = getValueAt(row, column);
+            try {
+                super.setValueAt(aValue, row, column);
+
+                if (tableModel.getColumnCount() == memoryHeaders.length) {
+                    int addressColumnValue = Integer.parseInt((String) getValueAt(row, 0));
+                    int address = addressColumnValue * 16 + column - 1;
+                    realMachine.getMemoryManager().getMemory().write(address, Long.parseLong(aValue.toString()));
+                } else if (tableModel.getColumnCount() == cpuVisualiser.getCpuHeaders().length) {
+                    String registerName = (String) tableModel.getValueAt(row, 0);
+                    cpuVisualiser.updateRegister(registerName, Integer.parseInt(aValue.toString()));
+                }
+            } catch (NumberFormatException e) {
+                super.setValueAt(oldValue, row, column);
+                JOptionPane.showMessageDialog(null, "Invalid input. Please enter a valid value.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 }
