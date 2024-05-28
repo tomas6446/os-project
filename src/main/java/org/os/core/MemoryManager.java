@@ -4,8 +4,8 @@ package org.os.core;
 import com.sun.jdi.VMOutOfMemoryException;
 import lombok.Getter;
 
-import static org.os.userland.ComputerInterface.REAL_MEMORY_SIZE;
-import static org.os.userland.ComputerInterface.VM_ADDRESS;
+import static org.os.userland.InteractiveInterface.REAL_MEMORY_SIZE;
+import static org.os.userland.InteractiveInterface.VM_ADDRESS;
 
 
 @Getter

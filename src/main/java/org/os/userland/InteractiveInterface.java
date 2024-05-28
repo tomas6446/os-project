@@ -1,7 +1,6 @@
 package org.os.userland;
 
 import org.os.core.*;
-import org.os.util.CpuVisualiser;
 import org.os.util.MemoryVisualiser;
 
 import java.io.IOException;
@@ -11,14 +10,14 @@ import java.util.stream.Stream;
 
 import static java.lang.System.out;
 
-public class ComputerInterface {
+public class InteractiveInterface {
     public static final int REAL_MEMORY_SIZE = 4624;
     public static final int VM_ADDRESS = 256; // 16 pages, 16 words per page
     private static final int CYCLES = 10;
-    private static final Logger LOG = Logger.getLogger(ComputerInterface.class.getName());
+    private static final Logger LOG = Logger.getLogger(InteractiveInterface.class.getName());
     private final Scanner scanner = new Scanner(System.in);
 
-    public ComputerInterface() {
+    public InteractiveInterface() {
         out.println("=== Computer started ===");
         initializeComponents();
     }
@@ -31,9 +30,11 @@ public class ComputerInterface {
         clearConsole();
         Cpu cpu = new Cpu();
         RealMemory realMemory = new RealMemory(REAL_MEMORY_SIZE);
+        SupervisorMemory supervisorMemory = new SupervisorMemory(REAL_MEMORY_SIZE);
         PaginationTable paginationTable = new PaginationTable(realMemory);
         MemoryManager memoryManager = new MemoryManager(cpu, realMemory, paginationTable);
-        RealMachine realMachine = new RealMachine(realMemory, cpu, memoryManager, paginationTable);
+        RealMachine realMachine = new RealMachine(realMemory, cpu, memoryManager, paginationTable, supervisorMemory);
+        new MemoryVisualiser(realMachine.getRealMemory().getMemory(), realMachine.getCpu());
 
         commandLoop(realMachine);
     }
@@ -86,7 +87,6 @@ public class ComputerInterface {
                         realMachine.getCpu().setModeEnum(ModeEnum.USER);
                     }
                     case "stop" -> realMachine.virtualMachineInterrupt();
-                    case "memory" -> showMemoryTable(realMachine);
                     case "cls" -> clearConsole();
                     case "exit" -> {
                         return;
@@ -140,7 +140,6 @@ public class ComputerInterface {
                 "super - Enter super mode%n" +
                 "super_run - Run in super mode%n" +
                 "debug - Toggle debug mode%n" +
-                "memory - Display memory tables%n" +
                 "cls - Clear the console%n" +
                 "exit - Exit the interface%n" +
                 "Enter a command: ");
@@ -236,33 +235,6 @@ public class ComputerInterface {
             out.println("Debug mode stopped.");
             realMachine.virtualMachineInterrupt();
         }
-    }
-
-    private void showMemoryTable(RealMachine realMachine) {
-        String input;
-        do {
-            out.printf("%nChoose an option:%n" +
-                    "1. Pagination Table%n" +
-                    "2. Virtual Machines%n" +
-                    "3. Virtual Memory%n" +
-                    "4. Full Memory%n" +
-                    "5. Registers%n" +
-                    "0. Exit%n" +
-                    "Enter the number of the option: ");
-            input = scanner.nextLine();
-            MemoryVisualiser memoryVisualiser = new MemoryVisualiser(realMachine.getRealMemory().getMemory());
-            CpuVisualiser cpuVisualiser = new CpuVisualiser(realMachine.getCpu());
-            switch (input) {
-                case "1" -> memoryVisualiser.showPagination();
-                case "2" -> memoryVisualiser.showVirtualMachines();
-                case "3" -> memoryVisualiser.showVirtualMemory();
-                case "4" -> memoryVisualiser.showFullMemory();
-                case "5" -> cpuVisualiser.showRegisters();
-                case "0" -> {
-                }
-                default -> out.println("Invalid input. Please enter a number between 0 and 5.");
-            }
-        } while (!"0".equals(input));
     }
 
     private void clearConsole() {

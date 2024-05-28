@@ -16,7 +16,7 @@ public class Cpu {
     private int pi;
     private int mode;
 
-    private ModeEnum modeEnum;
+    private ModeEnum modeEnum = ModeEnum.SUPERVISOR;
 
     public String toString() {
         return "CPU Registers:\n" +

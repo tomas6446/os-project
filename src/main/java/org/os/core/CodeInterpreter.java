@@ -30,17 +30,32 @@ public class CodeInterpreter {
                     counter = switch (command) {
                         case DATA_SEGMENT -> handleSegment(memoryManager, cpu, reader);
                         case CodeEnum.MOVE -> handleMove(memoryManager, cpu, args, command);
-                        case CodeEnum.JM, CodeEnum.JG, CodeEnum.JL, CodeEnum.JLR, CodeEnum.JGR, CodeEnum.LD, CodeEnum.ST ->
-                                handleOther(memoryManager, command.getCode(), cpu, Long.parseLong(args.get(1)));
+                        case CodeEnum.JM, CodeEnum.JG, CodeEnum.JL, CodeEnum.JLR, CodeEnum.JGR, CodeEnum.LD,
+                             CodeEnum.ST -> handleOther(memoryManager, command.getCode(), cpu, Long.parseLong(args.get(1)));
+                        case CodeEnum.PRINT -> handlePrint(memoryManager, cpu, args);
                         default -> handleDefault(memoryManager, command.getCode(), cpu);
                     };
                     cpu.setCs(counter);
                 }
             }
-            out.println("Program loaded. Use 'run' command to start the program");
+            out.println("Program loaded.");
         } catch (IOException e) {
             out.println("Error while reading file: " + e.getMessage());
         }
+    }
+
+    private int handlePrint(MemoryManager memoryManager, Cpu cpu, List<String> args) {
+        if (args.size() != 2) {
+            return cpu.getCs();
+        }
+        memoryManager.write(cpu.getCs(), CodeEnum.PRINT.getCode(), cpu.getPtr());
+        int dataSize = args.get(1).length();
+
+        for (int i = 0; i < dataSize; i++) {
+            memoryManager.write(cpu.getCs() + i + 1, args.get(1).charAt(i), cpu.getPtr());
+        }
+        increaseCounter(cpu, dataSize + 1);
+        return cpu.getCs();
     }
 
     private boolean isNumber(String s) {
