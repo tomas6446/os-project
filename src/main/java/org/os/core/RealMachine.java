@@ -95,6 +95,7 @@ public class RealMachine {
         try {
             long command = memoryManager.read(cpu.getAtm(), ptr);
             if (CodeEnum.byCode(command) == CodeEnum.EMPTY) {
+                cpu.setExc(ExceptionEnum.HALT.getValue());
                 return "[EMPTY]";
             } else {
                 handleCommand(command);
