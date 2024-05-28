@@ -3,39 +3,10 @@ package org.os.core;
 import com.sun.jdi.VMOutOfMemoryException;
 import lombok.Getter;
 
-import java.util.stream.IntStream;
-
-@Getter
-public class RealMemory implements Memory {
-    private final int size;
-    private final Word[] memory;
-
+public class RealMemory extends Memory {
     public RealMemory(int size) {
-        this.size = size;
-        this.memory = new Word[size];
-        IntStream.range(0, size).forEachOrdered(i -> memory[i] = new Word());
+        super(size);
     }
-
-    @Override
-    public Word read(int address) {
-        return memory[address].getWord();
-    }
-
-    @Override
-    public void write(int address, long value) {
-        memory[address].fromInt(value);
-    }
-
-    @Override
-    public void writeLower(int address, int value) {
-        memory[address].setLeft(value);
-    }
-
-    @Override
-    public long readLower(int address) {
-        return memory[address].getLeft();
-    }
-
     /*
      * This method is used to allocate a block of memory of size 16 if available
      */
@@ -46,7 +17,7 @@ public class RealMemory implements Memory {
         for (int i = realMemoryStart; i < size; i += blockSize, index++) {
             boolean blockIsFree = true;
             for (int j = 0; j < blockSize; j++) {
-                if (!memory[i + j].isFree()) {
+                if (!words[i + j].isFree()) {
                     blockIsFree = false;
                     break;
                 }
@@ -61,7 +32,7 @@ public class RealMemory implements Memory {
     public void free(int index) {
         int address = index * 16;
         for (int j = 0; j < 16; j++) {
-            memory[address + j] = new Word();
+            words[address + j] = new Word();
         }
     }
 }

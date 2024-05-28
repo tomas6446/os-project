@@ -1,11 +1,37 @@
 package org.os.core;
 
-public interface Memory {
-    Word read(int address);
+import lombok.Getter;
 
-    void write(int address, long value);
+import java.util.stream.IntStream;
 
-    void writeLower(int address, int value);
+@Getter
+public abstract class Memory implements IMemory {
+    protected final int size;
+    protected final Word[] words;
 
-    long readLower(int address);
+    protected Memory(int size) {
+        this.size = size;
+        this.words = new Word[size];
+        IntStream.range(0, size).forEachOrdered(i -> words[i] = new Word());
+    }
+
+    @Override
+    public Word read(int address) {
+        return words[address].getWord();
+    }
+
+    @Override
+    public void write(int address, long value) {
+        words[address].fromInt(value);
+    }
+
+    @Override
+    public void writeLower(int address, int value) {
+        words[address].setLeft(value);
+    }
+
+    @Override
+    public long readLower(int address) {
+        return words[address].getLeft();
+    }
 }

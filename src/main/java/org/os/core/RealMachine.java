@@ -1,7 +1,6 @@
 package org.os.core;
 
 import com.sun.jdi.VMOutOfMemoryException;
-import lombok.Getter;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -10,21 +9,8 @@ import java.time.format.DateTimeFormatter;
 import static java.lang.System.out;
 import static org.os.userland.InteractiveInterface.VM_ADDRESS;
 
-@Getter
-public class RealMachine {
-    private final SupervisorMemory supervisorMemory;
-    private final MemoryManager memoryManager;
-    private final RealMemory realMemory;
-    private final PaginationTable paginationTable;
-    private final Cpu cpu;
-
-    public RealMachine(RealMemory realMemory, Cpu cpu, MemoryManager memoryManager, PaginationTable paginationTable, SupervisorMemory supervisorMemory) {
-        this.realMemory = realMemory;
-        this.cpu = cpu;
-        this.memoryManager = memoryManager;
-        this.paginationTable = paginationTable;
-        this.supervisorMemory = supervisorMemory;
-    }
+public record RealMachine(RealMemory realMemory, Cpu cpu, MemoryManager memoryManager, PaginationTable paginationTable,
+                          SupervisorMemory supervisorMemory) {
 
     public int load(String programName) {
         try {
@@ -70,11 +56,11 @@ public class RealMachine {
 
     public void preRun(int ptr) throws ArrayIndexOutOfBoundsException, VMOutOfMemoryException {
         cpu.setModeEnum(ModeEnum.USER);
-        cpu.setAr((int) memoryManager.getMemory().readLower(ptr * 16));
-        cpu.setBr((int) memoryManager.getMemory().readLower(ptr * 16 + 1));
-        cpu.setAtm((int) memoryManager.getMemory().readLower(ptr * 16 + 2));
-        cpu.setTf((int) memoryManager.getMemory().readLower(ptr * 16 + 3));
-        cpu.setPtr((int) memoryManager.getMemory().readLower(ptr * 16 + 4));
+        cpu.setAr((int) memoryManager.memory().readLower(ptr * 16));
+        cpu.setBr((int) memoryManager.memory().readLower(ptr * 16 + 1));
+        cpu.setAtm((int) memoryManager.memory().readLower(ptr * 16 + 2));
+        cpu.setTf((int) memoryManager.memory().readLower(ptr * 16 + 3));
+        cpu.setPtr((int) memoryManager.memory().readLower(ptr * 16 + 4));
 
         cpu.setPtr(ptr);
     }
@@ -82,11 +68,11 @@ public class RealMachine {
     public void virtualMachineInterrupt() throws ArrayIndexOutOfBoundsException, VMOutOfMemoryException {
         int address = cpu.getPtr() * 16;
 
-        memoryManager.getMemory().writeLower(address, cpu.getAr());
-        memoryManager.getMemory().writeLower(address + 1, cpu.getBr());
-        memoryManager.getMemory().writeLower(address + 2, cpu.getAtm());
-        memoryManager.getMemory().writeLower(address + 3, cpu.getTf());
-        memoryManager.getMemory().writeLower(address + 4, cpu.getPtr());
+        memoryManager.memory().writeLower(address, cpu.getAr());
+        memoryManager.memory().writeLower(address + 1, cpu.getBr());
+        memoryManager.memory().writeLower(address + 2, cpu.getAtm());
+        memoryManager.memory().writeLower(address + 3, cpu.getTf());
+        memoryManager.memory().writeLower(address + 4, cpu.getPtr());
 
         handleException();
         cpu.setModeEnum(ModeEnum.SUPERVISOR);
@@ -209,7 +195,7 @@ public class RealMachine {
                 if (cpu.getMode() == 1) {
                     memoryManager.write(cpu.getAtm() + 1, cpu.getAr(), cpu.getPtr());
                 } else if (cpu.getMode() == 0) {
-                    memoryManager.getMemory().write(cpu.getAtm() + 1, cpu.getAr());
+                    memoryManager.memory().write(cpu.getAtm() + 1, cpu.getAr());
                 }
                 yield 2;
             default:
@@ -265,7 +251,7 @@ public class RealMachine {
         if (cpu.getMode() == 1) {
             memoryManager.write((int) address, (int) registerValue, cpu.getPtr());
         } else {
-            memoryManager.getMemory().write((int) address, (int) registerValue);
+            memoryManager.memory().write((int) address, (int) registerValue);
         }
         return 3;
     }

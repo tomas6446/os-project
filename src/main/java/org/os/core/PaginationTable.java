@@ -13,11 +13,11 @@ public class PaginationTable {
      * Get a page from the real memory
      */
     public Word get(int index, int ptr) {
-        if (realMemory.getMemory()[index].isFree()) {
+        if (realMemory.getWords()[index].isFree()) {
             allocate(ptr);
-            return realMemory.getMemory()[index];
+            return realMemory.getWords()[index];
         }
-        return realMemory.getMemory()[index];
+        return realMemory.getWords()[index];
     }
 
     /*
@@ -27,8 +27,8 @@ public class PaginationTable {
         try {
             int index = realMemory.allocate();
             for (int i = 0; i < 16; i++) {
-                if (realMemory.getMemory()[ptr * 16 + i].isFree()) {
-                    realMemory.getMemory()[ptr * 16 + i].setRight(index);
+                if (realMemory.getWords()[ptr * 16 + i].isFree()) {
+                    realMemory.getWords()[ptr * 16 + i].setRight(index);
                     return;
                 }
             }
@@ -42,10 +42,10 @@ public class PaginationTable {
      * Frees the 16 words of memory in pagination table and the real memory, as well as vm memory
      */
     public void free(int ptr) {
-        realMemory.getMemory()[ptr + 256] = new Word();
+        realMemory.getWords()[ptr + 256] = new Word();
         for (int i = 0; i < 16; i++) {
             int index = realMemory.read(ptr + i).getRight();
-            realMemory.getMemory()[ptr + i] = new Word();
+            realMemory.getWords()[ptr + i] = new Word();
             realMemory.free(index);
         }
     }

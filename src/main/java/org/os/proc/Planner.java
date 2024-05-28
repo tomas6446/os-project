@@ -4,7 +4,6 @@ import org.os.core.ExceptionEnum;
 import org.os.core.ModeEnum;
 import org.os.core.RealMachine;
 import org.os.util.Logger;
-import org.os.util.MemoryVisualiser;
 
 import java.io.IOException;
 import java.util.Deque;
@@ -80,13 +79,13 @@ public class Planner {
         realMachine.virtualMachineInterrupt();
         logger.writeOutputToFile(vmId, output);
 
-        ExceptionEnum exception = ExceptionEnum.byValue(realMachine.getCpu().getExc());
+        ExceptionEnum exception = ExceptionEnum.byValue(realMachine.cpu().getExc());
         switch (exception) {
             case OUTPUT -> resourceManager.addPacketToFront(ProcessEnum.ENVIRONMENT_INTERACTION, new Packet(PacketTypeEnum.OUTPUT));
             case INPUT -> resourceManager.addPacketToFront(ProcessEnum.ENVIRONMENT_INTERACTION, new Packet(PacketTypeEnum.INPUT_I));
         }
         resourceManager.removePacket(ProcessEnum.VM, packet);
-        realMachine.getCpu().setModeEnum(ModeEnum.SUPERVISOR);
+        realMachine.cpu().setModeEnum(ModeEnum.SUPERVISOR);
     }
 
     private void handleGetPutData(Packet packet) {
@@ -108,7 +107,7 @@ public class Planner {
 
     private void handleInterrupt() {
         realMachine.handleException();
-        realMachine.getCpu().setExc(ExceptionEnum.NO_EXCEPTION.getValue());
+        realMachine.cpu().setExc(ExceptionEnum.NO_EXCEPTION.getValue());
     }
 
     private void handleEnvironmentInteraction(Packet packet) throws IOException {
@@ -126,7 +125,7 @@ public class Planner {
                 }
             }
             case OUTPUT -> {
-                System.out.println(realMachine.getSupervisorMemory().print());
+                System.out.println(realMachine.supervisorMemory().print());
                 resourceManager.removePacket(ProcessEnum.ENVIRONMENT_INTERACTION, packet);
             }
         }

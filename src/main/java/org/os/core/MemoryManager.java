@@ -2,23 +2,12 @@ package org.os.core;
 
 
 import com.sun.jdi.VMOutOfMemoryException;
-import lombok.Getter;
 
 import static org.os.userland.InteractiveInterface.REAL_MEMORY_SIZE;
 import static org.os.userland.InteractiveInterface.VM_ADDRESS;
 
 
-@Getter
-public class MemoryManager {
-    private final Cpu cpu;
-    private final Memory memory;
-    private final PaginationTable paginationTable;
-
-    public MemoryManager(Cpu cpu, Memory memory, PaginationTable paginationTable) {
-        this.cpu = cpu;
-        this.memory = memory;
-        this.paginationTable = paginationTable;
-    }
+public record MemoryManager(Cpu cpu, IMemory memory, PaginationTable paginationTable) {
 
     private int getAddress(int address, int ptr) throws RuntimeException {
         switch (cpu.getModeEnum()) {

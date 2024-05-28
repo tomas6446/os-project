@@ -20,9 +20,9 @@ public class MemoryVisualiser {
 
     public MemoryVisualiser(RealMachine realMachine) {
         this.realMachine = realMachine;
-        this.cpuVisualiser = new CpuVisualiser(realMachine.getCpu());
+        this.cpuVisualiser = new CpuVisualiser(realMachine.cpu());
         initializeUI();
-        updateTable(toData(256, realMachine.getRealMemory().getMemory()), memoryHeaders);
+        updateTable(toData(256, realMachine.realMemory().getWords()), memoryHeaders);
     }
 
     private static String[][] toData(int rows, Word[] memory) {
@@ -65,7 +65,7 @@ public class MemoryVisualiser {
 
         paginationButton.addActionListener(e -> {
             defaultFont();
-            updateTable(toData(16, realMachine.getRealMemory().getMemory()), memoryHeaders);
+            updateTable(toData(16, realMachine.realMemory().getWords()), memoryHeaders);
         });
         virtualMachinesButton.addActionListener(e -> {
             defaultFont();
@@ -77,7 +77,7 @@ public class MemoryVisualiser {
         });
         fullMemoryButton.addActionListener(e -> {
             defaultFont();
-            updateTable(toData(256, realMachine.getRealMemory().getMemory()), memoryHeaders);
+            updateTable(toData(256, realMachine.realMemory().getWords()), memoryHeaders);
         });
         cpuRegistersButton.addActionListener(e -> {
             updateTable(cpuVisualiser.getRegisterData(), cpuVisualiser.getCpuHeaders());
@@ -120,8 +120,8 @@ public class MemoryVisualiser {
         data[0][0] = "016";
         for (int j = 0; j < 16; j++) {
             int address = 16 * 16 + j;
-            data[0][j + 1] = realMachine.getRealMemory()
-                    .getMemory()[address]
+            data[0][j + 1] = realMachine.realMemory()
+                    .getWords()[address]
                     .getWord()
                     .toBinaryString();
         }
@@ -135,8 +135,8 @@ public class MemoryVisualiser {
             data[i - 17][0] = String.format("%03d", i);
             for (int j = 0; j < 16; j++) {
                 int address = i * 16 + j;
-                data[i - 17][j + 1] = realMachine.getRealMemory()
-                        .getMemory()[address]
+                data[i - 17][j + 1] = realMachine.realMemory()
+                        .getWords()[address]
                         .getWord()
                         .toBinaryString();
             }
@@ -163,7 +163,7 @@ public class MemoryVisualiser {
                 if (tableModel.getColumnCount() == memoryHeaders.length) {
                     int addressColumnValue = Integer.parseInt((String) getValueAt(row, 0));
                     int address = addressColumnValue * 16 + column - 1;
-                    realMachine.getMemoryManager().getMemory().write(address, Long.parseLong(aValue.toString()));
+                    realMachine.memoryManager().memory().write(address, Long.parseLong(aValue.toString()));
                 } else if (tableModel.getColumnCount() == cpuVisualiser.getCpuHeaders().length) {
                     String registerName = (String) tableModel.getValueAt(row, 0);
                     cpuVisualiser.updateRegister(registerName, Integer.parseInt(aValue.toString()));

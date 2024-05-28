@@ -1,7 +1,6 @@
 package org.os.userland;
 
 import org.os.core.*;
-import org.os.util.MemoryVisualiser;
 
 import java.io.IOException;
 import java.util.Scanner;
@@ -56,15 +55,15 @@ public class InteractiveInterface {
                     }
                     case "super" -> {
                         out.println("Mode set to SUPERVISOR");
-                        realMachine.getCpu().setModeEnum(ModeEnum.SUPERVISOR);
+                        realMachine.cpu().setModeEnum(ModeEnum.SUPERVISOR);
                         handleSuper(realMachine, true);
 
                         out.println("MOVE super mode to user mode");
-                        realMachine.getCpu().setModeEnum(ModeEnum.USER);
+                        realMachine.cpu().setModeEnum(ModeEnum.USER);
                     }
                     case "super_run" -> {
                         out.println("Running in SUPERVISOR mode.");
-                        realMachine.getCpu().setModeEnum(ModeEnum.SUPERVISOR);
+                        realMachine.cpu().setModeEnum(ModeEnum.SUPERVISOR);
                         handleSuper(realMachine, false);
 
                         out.print("TI: ");
@@ -72,7 +71,7 @@ public class InteractiveInterface {
                         realMachine.runSuper(cycles);
 
                         out.println("MOVE super mode to user mode");
-                        realMachine.getCpu().setModeEnum(ModeEnum.USER);
+                        realMachine.cpu().setModeEnum(ModeEnum.USER);
                     }
                     case "stop" -> realMachine.virtualMachineInterrupt();
                     case "cls" -> clearConsole();
@@ -96,7 +95,7 @@ public class InteractiveInterface {
                 .filter(command -> !command.isEmpty())
                 .forEachOrdered(command -> {
                     if (handleException(realMachine, command) == 0 && handleRegisterSet(realMachine, command) == 0) {
-                        codeInterpreter.loadCommand(realMachine.getMemoryManager(), command, realMachine.getCpu());
+                        codeInterpreter.loadCommand(realMachine.memoryManager(), command, realMachine.cpu());
                     }
                     if (runByLine) {
                         realMachine.runSuper(1);
@@ -139,7 +138,7 @@ public class InteractiveInterface {
             out.println("Invalid VM number. Please enter a number between 0 and 15.");
             return;
         }
-        if (realMachine.getCpu().getModeEnum() == null) {
+        if (realMachine.cpu().getModeEnum() == null) {
             out.println("No program loaded. Use 'load' command to load a program.");
             return;
         }
@@ -147,7 +146,7 @@ public class InteractiveInterface {
             out.println("VM number " + vmNumber + " does not exist.");
             return;
         }
-        realMachine.getCpu().setModeEnum(ModeEnum.USER);
+        realMachine.cpu().setModeEnum(ModeEnum.USER);
 
         if (debug == 1) {
             debugRun(realMachine, vmNumber);
@@ -189,29 +188,29 @@ public class InteractiveInterface {
             return 0;
         }
         if (input.contains("AR=")) {
-            realMachine.getCpu().setPtr(getRegisterInput(input));
+            realMachine.cpu().setPtr(getRegisterInput(input));
             return 1;
         } else if (input.contains("BR=")) {
-            realMachine.getCpu().setBr(getRegisterInput(input));
+            realMachine.cpu().setBr(getRegisterInput(input));
             return 1;
         } else if (input.contains("ATM=")) {
-            realMachine.getCpu().setAtm(getRegisterInput(input));
-            realMachine.getCpu().setCs(getRegisterInput(input));
+            realMachine.cpu().setAtm(getRegisterInput(input));
+            realMachine.cpu().setCs(getRegisterInput(input));
             return 1;
         } else if (input.contains("CS=")) {
-            realMachine.getCpu().setCs(getRegisterInput(input));
+            realMachine.cpu().setCs(getRegisterInput(input));
             return 1;
         } else if (input.contains("TF=")) {
-            realMachine.getCpu().setTf(getRegisterInput(input));
+            realMachine.cpu().setTf(getRegisterInput(input));
             return 1;
         } else if (input.contains("TI=")) {
-            realMachine.getCpu().setTi(getRegisterInput(input));
+            realMachine.cpu().setTi(getRegisterInput(input));
             return 1;
         } else if (input.contains("Mode=")) {
-            realMachine.getCpu().setModeEnum(ModeEnum.valueOf(input));
+            realMachine.cpu().setModeEnum(ModeEnum.valueOf(input));
             return 1;
         } else if (input.contains("Exc=")) {
-            realMachine.getCpu().setExc(getRegisterInput(input));
+            realMachine.cpu().setExc(getRegisterInput(input));
             return 1;
         }
         return 0;

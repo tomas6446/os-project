@@ -142,7 +142,6 @@ public class CodeInterpreter {
                 inputBuilder.append(arg);
             }
         }
-        String input = inputBuilder.toString();
-        return input;
+        return inputBuilder.toString();
     }
 }

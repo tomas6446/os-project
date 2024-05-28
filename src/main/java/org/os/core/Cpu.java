@@ -32,4 +32,9 @@ public class Cpu {
                 "Exc:   " + exc + "\n" +
                 "--------------" + "\n";
     }
+
+    public void setModeEnum(ModeEnum modeEnum) {
+        this.modeEnum = modeEnum;
+        this.mode = modeEnum.ordinal();
+    }
 }
