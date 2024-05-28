@@ -17,7 +17,7 @@ public class Main {
         RealMachine realMachine = new RealMachine(realMemory, cpu, memoryManager, paginationTable, supervisorMemory);
         new MemoryVisualiser(realMachine);
 
-        new InteractiveInterface(realMachine);
+        // new InteractiveInterface(realMachine);
         new Os(realMachine);
     }
 }
