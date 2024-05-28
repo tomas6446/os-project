@@ -6,6 +6,8 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Logger {
     private final Path logDir;
@@ -48,7 +50,8 @@ public class Logger {
         String fileName = "vm_" + vmId + ".txt";
         Path filePath = logDir.resolve(fileName);
         try (FileWriter writer = new FileWriter(filePath.toFile(), true)) {
-            writer.write(output + System.lineSeparator());
+            String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
+            writer.write(currentTime + "\n" + output + System.lineSeparator());
         } catch (IOException e) {
             System.err.println("Failed to write to file: " + filePath + " - " + e.getMessage());
         }

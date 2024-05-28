@@ -87,8 +87,7 @@ public record RealMachine(RealMemory realMemory, Cpu cpu, MemoryManager memoryMa
                 return "[EMPTY]";
             } else {
                 handleCommand(command);
-                String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-                return "Command: " + CodeEnum.byCode(command) + "\n" + cpu + "\nTime: " + currentTime;
+                return "Command: " + CodeEnum.byCode(command) + "\n" + cpu;
             }
         } catch (ArrayIndexOutOfBoundsException e) {
             cpu.setExc(ExceptionEnum.OUT_OF_BOUNDS.getValue());
