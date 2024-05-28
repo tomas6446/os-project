@@ -296,45 +296,13 @@ public record RealMachine(RealMemory realMemory, Cpu cpu, MemoryManager memoryMa
     public void handleException() {
         int exception = cpu.getExc();
         ExceptionEnum exceptionEnum = ExceptionEnum.byValue(exception);
-        if (exceptionEnum == ExceptionEnum.NO_EXCEPTION) {
+        if (exceptionEnum == ExceptionEnum.NO_EXCEPTION ||
+                exceptionEnum == ExceptionEnum.OUTPUT ||
+                exceptionEnum == ExceptionEnum.INPUT) {
             return;
         }
-        switch (exceptionEnum) {
-            case ExceptionEnum.RUNTIME_EXCEPTION -> {
-                out.println("Exception detected: program deleted at index " + cpu.getPtr());
-                clear(cpu.getPtr());
-            }
-            case ExceptionEnum.HALT -> {
-                out.println("Program halted at index " + cpu.getPtr());
-                clear(cpu.getPtr());
-            }
-            case ExceptionEnum.DEL -> {
-                out.println("Program deleted at index " + cpu.getPtr());
-                clear(cpu.getPtr());
-            }
-            case ExceptionEnum.OUT_OF_MEMORY -> {
-                out.println("Out of memory exception detected at index " + cpu.getPtr());
-                clear(cpu.getPtr());
-            }
-            case ExceptionEnum.ARRAY_INDEX_OUT_OF_BOUNDS -> {
-                out.println("Array index out of bounds exception detected at index " + cpu.getPtr());
-                clear(cpu.getPtr());
-            }
-        }
-        // exception();
-    }
-
-    private void exception() throws ArrayIndexOutOfBoundsException, VMOutOfMemoryException {
-        cpu.setModeEnum(ModeEnum.SUPERVISOR);
-        int atm = cpu.getAtm();
-        int cs = cpu.getCs();
-        cpu.setAtm(4320);
-        cpu.setCs(4320);
-        for (int i = 0; i < 5; i++) {
-            continueRun(-1);
-        }
-        cpu.setAtm(atm);
-        cpu.setCs(cs);
+        out.println("Exception detected: " + exceptionEnum.getName() + " at index " + cpu.getPtr());
+        clear(cpu.getPtr());
     }
 
     private int createVM() throws ArrayIndexOutOfBoundsException, VMOutOfMemoryException {
