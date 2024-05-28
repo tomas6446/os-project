@@ -17,26 +17,14 @@ public class InteractiveInterface {
     private static final Logger LOG = Logger.getLogger(InteractiveInterface.class.getName());
     private final Scanner scanner = new Scanner(System.in);
 
-    public InteractiveInterface() {
+    public InteractiveInterface(RealMachine realMachine) {
         out.println("=== Computer started ===");
-        initializeComponents();
+        clearConsole();
+        commandLoop(realMachine);
     }
 
     private static int getRegisterInput(String input) {
         return Integer.parseInt(input.split("=")[1].toUpperCase());
-    }
-
-    private void initializeComponents() {
-        clearConsole();
-        Cpu cpu = new Cpu();
-        RealMemory realMemory = new RealMemory(REAL_MEMORY_SIZE);
-        SupervisorMemory supervisorMemory = new SupervisorMemory(REAL_MEMORY_SIZE);
-        PaginationTable paginationTable = new PaginationTable(realMemory);
-        MemoryManager memoryManager = new MemoryManager(cpu, realMemory, paginationTable);
-        RealMachine realMachine = new RealMachine(realMemory, cpu, memoryManager, paginationTable, supervisorMemory);
-        new MemoryVisualiser(realMachine);
-
-        commandLoop(realMachine);
     }
 
     private void commandLoop(RealMachine realMachine) {
