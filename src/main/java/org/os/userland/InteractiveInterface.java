@@ -96,6 +96,7 @@ public class InteractiveInterface {
             }
         } catch (Exception e) {
             LOG.severe("Error: " + e.getMessage());
+            commandLoop(realMachine);
         } finally {
             scanner.close();
         }
