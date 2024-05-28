@@ -42,7 +42,7 @@ public class PaginationTable {
      * Frees the 16 words of memory in pagination table and the real memory, as well as vm memory
      */
     public void free(int ptr) {
-        realMemory.getMemory()[ptr + 16 * 16] = new Word();
+        realMemory.getMemory()[ptr + 256] = new Word();
         for (int i = 0; i < 16; i++) {
             int index = realMemory.read(ptr + i).getRight();
             realMemory.getMemory()[ptr + i] = new Word();

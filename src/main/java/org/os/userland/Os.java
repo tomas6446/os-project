@@ -16,9 +16,10 @@ public class Os {
     private void initializeComponents() {
         Cpu cpu = new Cpu();
         RealMemory realMemory = new RealMemory(REAL_MEMORY_SIZE);
+        SupervisorMemory supervisorMemory = new SupervisorMemory(REAL_MEMORY_SIZE);
         PaginationTable paginationTable = new PaginationTable(realMemory);
         MemoryManager memoryManager = new MemoryManager(cpu, realMemory, paginationTable);
-        RealMachine realMachine = new RealMachine(realMemory, cpu, memoryManager, paginationTable);
+        RealMachine realMachine = new RealMachine(realMemory, cpu, memoryManager, paginationTable, supervisorMemory);
 
         ResourceManager resourceManager = new ResourceManager();
         new Planner(realMachine, resourceManager).plan();

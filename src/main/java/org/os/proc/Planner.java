@@ -4,11 +4,10 @@ import org.os.core.ExceptionEnum;
 import org.os.core.ModeEnum;
 import org.os.core.RealMachine;
 import org.os.util.Logger;
+import org.os.util.MemoryVisualiser;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.util.Deque;
 import java.util.Scanner;
 import java.util.stream.IntStream;
 
@@ -24,6 +23,7 @@ public class Planner {
         this.resourceManager = resourceManager;
         this.logger = new Logger();
         this.scanner = new Scanner(System.in);
+        new MemoryVisualiser(realMachine.getRealMemory().getMemory(), realMachine.getCpu());
 
         resourceManager.addPacket(ProcessEnum.START_STOP, new Packet(PacketTypeEnum.RUNNING));
     }
@@ -31,7 +31,7 @@ public class Planner {
     public void plan() {
         while (isWorking) {
             for (ProcessEnum process : ProcessEnum.values()) {
-                Queue<Packet> packetQueue = resourceManager.getProcessPackets(process);
+                Deque<Packet> packetQueue = resourceManager.getProcessPackets(process);
                 if (!packetQueue.isEmpty()) {
                     Packet packet = (process == ProcessEnum.ENVIRONMENT_INTERACTION ||
                             process == ProcessEnum.JCL ||
@@ -68,7 +68,6 @@ public class Planner {
         resourceManager.addPacket(ProcessEnum.ENVIRONMENT_INTERACTION, new Packet(PacketTypeEnum.RUNNING));
         resourceManager.addPacket(ProcessEnum.INTERRUPT, new Packet(PacketTypeEnum.RUNNING));
         resourceManager.addPacket(ProcessEnum.MAIN_PROC, new Packet(PacketTypeEnum.RUNNING));
-        resourceManager.addPacket(ProcessEnum.JCL, new Packet(PacketTypeEnum.RUNNING));
     }
 
     private void handleVm(Packet packet) {
@@ -84,8 +83,8 @@ public class Planner {
 
         ExceptionEnum exception = ExceptionEnum.byValue(realMachine.getCpu().getExc());
         switch (exception) {
-            case OUTPUT -> resourceManager.addPacket(ProcessEnum.ENVIRONMENT_INTERACTION, new Packet(PacketTypeEnum.OUTPUT));
-            case INPUT -> resourceManager.addPacket(ProcessEnum.ENVIRONMENT_INTERACTION, new Packet(PacketTypeEnum.INPUT_I));
+            case OUTPUT -> resourceManager.addPacketToFront(ProcessEnum.ENVIRONMENT_INTERACTION, new Packet(PacketTypeEnum.OUTPUT));
+            case INPUT -> resourceManager.addPacketToFront(ProcessEnum.ENVIRONMENT_INTERACTION, new Packet(PacketTypeEnum.INPUT_I));
         }
         resourceManager.removePacket(ProcessEnum.VM, packet);
         realMachine.getCpu().setModeEnum(ModeEnum.SUPERVISOR);
@@ -96,19 +95,10 @@ public class Planner {
             System.out.println(packet.getData());
             return;
         }
-        System.out.println("Program path (type 'x' to finish):");
-        List<String> programPaths = new ArrayList<>();
-        while (true) {
-            String input = scanner.nextLine();
-            if (input.equalsIgnoreCase("x")) {
-                break;
-            }
-            programPaths.add(input);
-        }
-        for (String path : programPaths) {
-            int vmId = realMachine.load(path);
-            logger.writeOutputToFile(vmId, "Program loaded: " + path);
-        }
+        System.out.println("Program path: ");
+        String path = scanner.nextLine();
+        int vmId = realMachine.load(path);
+        logger.writeOutputToFile(vmId, "Program loaded: " + path);
         resourceManager.addPacket(ProcessEnum.JOB_GOVERNOR, new Packet(PacketTypeEnum.RUN_COMPLETE));
     }
 
@@ -119,6 +109,7 @@ public class Planner {
 
     private void handleInterrupt() {
         realMachine.handleException();
+        realMachine.getCpu().setExc(ExceptionEnum.NO_EXCEPTION.getValue());
     }
 
     private void handleEnvironmentInteraction(Packet packet) throws IOException {
@@ -132,9 +123,13 @@ public class Planner {
                 switch (data) {
                     case "off" -> resourceManager.addPacket(ProcessEnum.MAIN_PROC, new Packet(PacketTypeEnum.WORK_END_U, "off"));
                     case "add" -> resourceManager.addPacket(ProcessEnum.MAIN_PROC, new Packet(PacketTypeEnum.WORK_END_U, "add"));
+                    case "start" -> resourceManager.addPacket(ProcessEnum.MAIN_PROC, new Packet(PacketTypeEnum.WORK_END_U, "start"));
                 }
             }
-            case OUTPUT -> resourceManager.addPacket(ProcessEnum.GET_PUT_DATA, new Packet(PacketTypeEnum.OUTPUT, packet.getData()));
+            case OUTPUT -> {
+                System.out.println(realMachine.getSupervisorMemory().print());
+                resourceManager.removePacket(ProcessEnum.ENVIRONMENT_INTERACTION, packet);
+            }
         }
     }
 
@@ -148,6 +143,7 @@ public class Planner {
         switch (packet.getData()) {
             case "off" -> resourceManager.addPacket(ProcessEnum.START_STOP, new Packet(PacketTypeEnum.WORK_END));
             case "add" -> resourceManager.addPacket(ProcessEnum.JOB_GOVERNOR, new Packet(PacketTypeEnum.RUNNING));
+            case "start" -> resourceManager.addPacket(ProcessEnum.JCL, new Packet(PacketTypeEnum.RUNNING));
         }
     }
 }

@@ -12,16 +12,18 @@ import static org.os.userland.InteractiveInterface.VM_ADDRESS;
 
 @Getter
 public class RealMachine {
+    private final SupervisorMemory supervisorMemory;
     private final MemoryManager memoryManager;
     private final RealMemory realMemory;
     private final PaginationTable paginationTable;
     private final Cpu cpu;
 
-    public RealMachine(RealMemory realMemory, Cpu cpu, MemoryManager memoryManager, PaginationTable paginationTable) {
+    public RealMachine(RealMemory realMemory, Cpu cpu, MemoryManager memoryManager, PaginationTable paginationTable, SupervisorMemory supervisorMemory) {
         this.realMemory = realMemory;
         this.cpu = cpu;
         this.memoryManager = memoryManager;
         this.paginationTable = paginationTable;
+        this.supervisorMemory = supervisorMemory;
     }
 
     public int load(String programName) {
@@ -199,8 +201,7 @@ public class RealMachine {
                 yield 0;
             case PRINT:
                 cpu.setExc(ExceptionEnum.OUTPUT.getValue());
-                out.println(cpu.getAr());
-                yield 1;
+                yield handlePrintCommand();
             case LD:
                 cpu.setAr((int) memoryManager.read(cpu.getAtm() + 1, cpu.getPtr()));
                 yield 2;
@@ -215,6 +216,17 @@ public class RealMachine {
                 yield 1;
         };
         cpu.setAtm(cpu.getAtm() + atm);
+    }
+
+    private int handlePrintCommand() {
+        int atm = 1;
+        int index = 0;
+        while (memoryManager.read(cpu.getAtm() + atm, cpu.getPtr()) != '$') {
+            supervisorMemory.write(index, (int) memoryManager.read(cpu.getAtm() + atm, cpu.getPtr()));
+            atm++;
+            index++;
+        }
+        return atm + 1;
     }
 
     private int handleJmpCommand(int flag) {
@@ -301,18 +313,28 @@ public class RealMachine {
         if (exceptionEnum == ExceptionEnum.NO_EXCEPTION) {
             return;
         }
-        if (exceptionEnum == ExceptionEnum.RUNTIME_EXCEPTION) {
-            out.println("Exception detected: program deleted at index " + cpu.getPtr());
-            clear(cpu.getPtr());
-            cpu.setExc(ExceptionEnum.NO_EXCEPTION.getValue());
-            return;
-        } else if (exceptionEnum == ExceptionEnum.HALT) {
-            out.println("Program halted at index " + cpu.getPtr());
-            clear(cpu.getPtr());
-            cpu.setExc(ExceptionEnum.NO_EXCEPTION.getValue());
-            return;
+        switch (exceptionEnum) {
+            case ExceptionEnum.RUNTIME_EXCEPTION -> {
+                out.println("Exception detected: program deleted at index " + cpu.getPtr());
+                clear(cpu.getPtr());
+            }
+            case ExceptionEnum.HALT -> {
+                out.println("Program halted at index " + cpu.getPtr());
+                clear(cpu.getPtr());
+            }
+            case ExceptionEnum.DEL -> {
+                out.println("Program deleted at index " + cpu.getPtr());
+                clear(cpu.getPtr());
+            }
+            case ExceptionEnum.OUT_OF_MEMORY -> {
+                out.println("Out of memory exception detected at index " + cpu.getPtr());
+                clear(cpu.getPtr());
+            }
+            case ExceptionEnum.ARRAY_INDEX_OUT_OF_BOUNDS -> {
+                out.println("Array index out of bounds exception detected at index " + cpu.getPtr());
+                clear(cpu.getPtr());
+            }
         }
-        out.println("Exception detected: " + exceptionEnum.getName() + " at index " + cpu.getPtr());
         // exception();
     }
 
