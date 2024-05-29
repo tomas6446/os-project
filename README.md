@@ -1,8 +1,5 @@
 # Os project
 
-## Overview
-This project is implementation of Virtual Machine (VM) in Java.
-
 ## Memory Management and Paging Mechanism
 
 ### Memory Layout
@@ -42,12 +39,13 @@ The process of converting a virtual address to a real address:
 [Program example](program_example.txt)
 ```bash
 DATA_SEGMENT
-VAL 12 
-VAL 3 
+VAL 12
+VAL 3
 CODE_SEGMENT
 MOVE AR,2
 MOVE BR,3
 ADD
+PRINT OK$
 JM 10
 ```
 
@@ -55,5 +53,8 @@ JM 10
 ```bash
 git clone https://github.com/tomas6446/os-project.git
 cd os-project
-bash run.sh
+# Run the project in single OS mode
+bash run.sh interactive
+# Run the project in multi OS mode
+bash run.sh multi_os
 ```
